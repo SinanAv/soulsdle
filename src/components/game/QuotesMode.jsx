@@ -35,7 +35,6 @@ export default function QuotesMode() {
         <GuessInput
           onGuessSubmit={addGuess}
           onReset={resetGuesses}
-          isDisabled={isSolved}
           hideWhenDisabled={false}
           allCharacters={allCharacters}
           guesses={guesses}

@@ -15,7 +15,7 @@ function Home() {
 }
 
 function CharacterMode() {
-  const { guesses, addGuess, resetGuesses, targetCharacter, allCharacters, isSolved } = useGameLogic()
+  const { guesses, addGuess, resetGuesses, targetCharacter, allCharacters } = useGameLogic()
   console.log('character of the day:', targetCharacter)
 
   return (
@@ -27,7 +27,6 @@ function CharacterMode() {
       <GuessInput
         onGuessSubmit={addGuess}
         onReset={resetGuesses}
-        isDisabled={isSolved}
         allCharacters={allCharacters}
         guesses={guesses}
       />

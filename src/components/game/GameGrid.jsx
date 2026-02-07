@@ -22,7 +22,7 @@ export default function GameGrid({ guesses, targetCharacter }) {
       <tbody>
         {displayGuesses.map((guessObj, i) => (
           <tr key={i}>
-            {properties.map(prop => {
+            {properties.map((prop, propIndex) => {
               const value = guessObj.character[prop]
               const bg = guessObj.hints[prop] // 'green', 'yellow', or 'red'
               let displayValue = value
@@ -50,7 +50,15 @@ export default function GameGrid({ guesses, targetCharacter }) {
               }
 
               return (
-                <td key={prop} style={{ backgroundColor: bg, color: textColor }}>
+                <td
+                  key={prop}
+                  className="guess-cell-animate"
+                  style={{
+                    backgroundColor: bg,
+                    color: textColor,
+                    animationDelay: `${propIndex * 100}ms`
+                  }}
+                >
                   {displayValue}
                 </td>
               )

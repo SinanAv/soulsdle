@@ -364,6 +364,19 @@ th {
   opacity: 0.7;
 }
 
+.guess-cell-animate {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: guessCellReveal 260ms ease forwards;
+}
+
+@keyframes guessCellReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
