@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react"
 import { supabase } from '../../services/supabase'
 
-export default function GuessInput({ onGuessSubmit, onReset, allCharacters = [], guesses = [] }) {
+export default function GuessInput({
+  onGuessSubmit,
+  onReset,
+  isDisabled = false,
+  hideWhenDisabled = true,
+  allCharacters = [],
+  guesses = []
+}) {
   const [input, setInput] = useState('')
   const [highlightIndex, setHighlightIndex] = useState(-1)
 
@@ -92,22 +99,25 @@ export default function GuessInput({ onGuessSubmit, onReset, allCharacters = [],
   return (
     <div>
       <div className="guess-input">
-        <div className="guess-row">
-          <button type="button" onClick={onReset} disabled={!onReset}>
-            Reset
-          </button>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value)
-              setHighlightIndex(-1)
-            }}
-            onKeyDown={handleKeyDown}
-          />
-          <button onClick={handleSubmit}>Guess</button>
-        </div>
-        {filteredSuggestions.length > 0 && (
+        {!(isDisabled && hideWhenDisabled) && (
+          <div className="guess-row">
+            <button type="button" onClick={onReset} disabled={!onReset}>
+              Reset
+            </button>
+            <input
+              type="text"
+              value={input}
+              disabled={isDisabled}
+              onChange={(e) => {
+                setInput(e.target.value)
+                setHighlightIndex(-1)
+              }}
+              onKeyDown={handleKeyDown}
+            />
+            <button onClick={handleSubmit} disabled={isDisabled}>Guess</button>
+          </div>
+        )}
+        {!isDisabled && filteredSuggestions.length > 0 && (
           <div className="suggestion-list">
             {filteredSuggestions.map((name, index) => (
               <button
@@ -115,6 +125,7 @@ export default function GuessInput({ onGuessSubmit, onReset, allCharacters = [],
                 type="button"
                 className={`suggestion-item${index === highlightIndex ? ' is-active' : ''}`}
                 onClick={() => submitSuggestion(name)}
+                disabled={isDisabled}
               >
                 <img src={getCharacterImageUrl(name)} alt={name} />
                 <span>{name}</span>

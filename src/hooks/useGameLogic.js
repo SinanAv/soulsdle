@@ -119,5 +119,10 @@ export default function useGameLogic() {
     setGuesses(prev => [...prev, { character: guessedCharacter, hints }])
   }
 
-  return { guesses, addGuess, resetGuesses, targetCharacter, allCharacters, loading, error }
+  const isSolved = Boolean(
+    targetCharacter &&
+    guesses.some(g => String(g?.character?.name).toLowerCase() === String(targetCharacter?.name).toLowerCase())
+  )
+
+  return { guesses, addGuess, resetGuesses, targetCharacter, allCharacters, loading, error, isSolved }
 }

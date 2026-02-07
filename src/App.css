@@ -187,6 +187,159 @@ table {
   font-size: 16px;
 }
 
+.mode-select {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.mode-select button,
+.mode-select .mode-button {
+  min-width: 220px;
+  padding: 16px 26px;
+  font-size: 1.05rem;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--bone-white);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.25), rgba(247, 147, 30, 0.45));
+  border: 1px solid rgba(255, 107, 53, 0.55);
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mode-select button::after,
+.mode-select .mode-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.25), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mode-select button:hover,
+.mode-select .mode-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(247, 147, 30, 0.85);
+  box-shadow: 0 12px 30px rgba(255, 107, 53, 0.35);
+}
+
+.mode-select button:hover::after,
+.mode-select .mode-button:hover::after {
+  opacity: 1;
+}
+
+.mode-select button:active,
+.mode-select .mode-button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+}
+
+.mode-select button:focus-visible,
+.mode-select .mode-button:focus-visible {
+  outline: 2px solid rgba(255, 107, 53, 0.8);
+  outline-offset: 4px;
+}
+
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 1.5rem 0 1rem;
+}
+
+.mode-header button,
+.mode-header .back-button {
+  height: 44px;
+  padding: 0 16px;
+  font-size: 0.9rem;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(42, 42, 42, 0.8);
+  color: var(--bone-white);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-card {
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
+  padding: 1.5rem 1.6rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 107, 53, 0.25);
+  background: rgba(20, 20, 20, 0.75);
+  text-align: left;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.quote-text {
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: var(--bone-white);
+}
+
+.quote-guess-list {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quote-guess {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  text-align: left;
+}
+
+.quote-guess.is-correct {
+  background: rgba(46, 125, 50, 0.85);
+  border-color: rgba(129, 199, 132, 0.6);
+}
+
+.quote-guess.is-wrong {
+  background: rgba(183, 28, 28, 0.85);
+  border-color: rgba(239, 154, 154, 0.6);
+}
+
+.quote-guess-image img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.quote-guess-name {
+  font-size: 1.1rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+}
+
 th,
 td {
   padding: 0;
@@ -240,5 +393,23 @@ th {
   .guess-row input,
   .guess-row button {
     width: 100%;
+  }
+
+  .mode-select {
+    flex-direction: column;
+  }
+
+  .quote-card,
+  .quote-guess-list {
+    padding: 0 0.5rem;
+  }
+
+  .quote-guess {
+    grid-template-columns: 64px 1fr;
+  }
+
+  .quote-guess-image img {
+    width: 60px;
+    height: 60px;
   }
 }
