@@ -2,8 +2,17 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
 import getCharacterOfDay from '../utils/characterOfDay'
 
+const getTodayKey = () => {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function useGameLogic() {
   const GUESSES_STORAGE_KEY = 'soulsdle:guesses'
+  const todayKey = getTodayKey()
   const [allCharacters, setAllCharacters] = useState([])
   const [targetCharacter, setTargetCharacter] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -14,7 +23,13 @@ export default function useGameLogic() {
       const raw = localStorage.getItem(GUESSES_STORAGE_KEY)
       if (!raw) return []
       const parsed = JSON.parse(raw)
-      return Array.isArray(parsed) ? parsed : []
+      if (Array.isArray(parsed)) return []
+      if (parsed && typeof parsed === 'object') {
+        if (parsed.dateKey === todayKey && Array.isArray(parsed.guesses)) {
+          return parsed.guesses
+        }
+      }
+      return []
     } catch {
       return []
     }
@@ -22,11 +37,14 @@ export default function useGameLogic() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(GUESSES_STORAGE_KEY, JSON.stringify(guesses))
+      localStorage.setItem(
+        GUESSES_STORAGE_KEY,
+        JSON.stringify({ dateKey: todayKey, guesses })
+      )
     } catch {
       // Ignore storage errors (e.g. private mode or quota).
     }
-  }, [guesses, GUESSES_STORAGE_KEY])
+  }, [guesses, GUESSES_STORAGE_KEY, todayKey])
 
   const resetGuesses = () => {
     setGuesses([])

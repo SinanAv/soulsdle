@@ -2,8 +2,17 @@
 import { supabase } from '../services/supabase'
 import getQuoteOfDay from '../utils/quoteOfDay'
 
+const getTodayKey = () => {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function useQuoteLogic() {
   const QUOTE_GUESSES_STORAGE_KEY = 'soulsdle:quote-guesses'
+  const todayKey = getTodayKey()
   const [allCharacters, setAllCharacters] = useState([])
   const [quotes, setQuotes] = useState([])
   const [targetQuote, setTargetQuote] = useState(null)
@@ -16,7 +25,13 @@ export default function useQuoteLogic() {
       const raw = localStorage.getItem(QUOTE_GUESSES_STORAGE_KEY)
       if (!raw) return []
       const parsed = JSON.parse(raw)
-      return Array.isArray(parsed) ? parsed : []
+      if (Array.isArray(parsed)) return []
+      if (parsed && typeof parsed === 'object') {
+        if (parsed.dateKey === todayKey && Array.isArray(parsed.guesses)) {
+          return parsed.guesses
+        }
+      }
+      return []
     } catch {
       return []
     }
@@ -24,11 +39,14 @@ export default function useQuoteLogic() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(QUOTE_GUESSES_STORAGE_KEY, JSON.stringify(guesses))
+      localStorage.setItem(
+        QUOTE_GUESSES_STORAGE_KEY,
+        JSON.stringify({ dateKey: todayKey, guesses })
+      )
     } catch {
       // Ignore storage errors (e.g. private mode or quota).
     }
-  }, [guesses, QUOTE_GUESSES_STORAGE_KEY])
+  }, [guesses, QUOTE_GUESSES_STORAGE_KEY, todayKey])
 
   const resetGuesses = () => {
     setGuesses([])
