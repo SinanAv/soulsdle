@@ -9,7 +9,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Character Test</h1>
+      <h1>Soulsdle</h1>
 
       {/* GuessInput only calls addGuess when user submits */}
       <GuessInput
