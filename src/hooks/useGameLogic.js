@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+import getCharacterOfDay from '../utils/characterOfDay'
 
 export default function useGameLogic() {
   const GUESSES_STORAGE_KEY = 'soulsdle:guesses'
@@ -27,6 +28,10 @@ export default function useGameLogic() {
     }
   }, [guesses, GUESSES_STORAGE_KEY])
 
+  const resetGuesses = () => {
+    setGuesses([])
+  }
+
   useEffect(() => {
     let isMounted = true
 
@@ -47,10 +52,7 @@ export default function useGameLogic() {
       } else {
         const characters = Array.isArray(data) ? data : []
         setAllCharacters(characters)
-        const artorias = characters.find(
-          c => String(c.name).toLowerCase() === 'artorias'
-        )
-        setTargetCharacter(artorias || characters[0] || null)
+        setTargetCharacter(getCharacterOfDay(characters))
       }
 
       setLoading(false)
@@ -88,7 +90,7 @@ export default function useGameLogic() {
       const normalized = String(value)
         .toLowerCase()
         .replace(/\s+and\s+/g, ',')
-        .replace(/[\/&]/g, ',')
+        .replace(/[/&]/g, ',')
       return new Set(
         normalized
           .split(',')
@@ -117,5 +119,5 @@ export default function useGameLogic() {
     setGuesses(prev => [...prev, { character: guessedCharacter, hints }])
   }
 
-  return { guesses, addGuess, targetCharacter, allCharacters, loading, error }
+  return { guesses, addGuess, resetGuesses, targetCharacter, allCharacters, loading, error }
 }

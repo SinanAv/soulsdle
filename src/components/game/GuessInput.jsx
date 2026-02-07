@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { supabase } from '../../services/supabase'
 
-export default function GuessInput({ onGuessSubmit, allCharacters = [], guesses = [] }) {
+export default function GuessInput({ onGuessSubmit, onReset, allCharacters = [], guesses = [] }) {
   const [input, setInput] = useState('')
   const [highlightIndex, setHighlightIndex] = useState(-1)
 
@@ -39,6 +39,10 @@ export default function GuessInput({ onGuessSubmit, allCharacters = [], guesses 
   const selectSuggestion = (name) => {
     setInput(name)
     setHighlightIndex(-1)
+  }
+
+  const submitSuggestion = (name) => {
+    submitGuess(name)
   }
 
   const submitGuess = (value) => {
@@ -89,6 +93,9 @@ export default function GuessInput({ onGuessSubmit, allCharacters = [], guesses 
     <div>
       <div className="guess-input">
         <div className="guess-row">
+          <button type="button" onClick={onReset} disabled={!onReset}>
+            Reset
+          </button>
           <input
             type="text"
             value={input}
@@ -107,7 +114,7 @@ export default function GuessInput({ onGuessSubmit, allCharacters = [], guesses 
                 key={name}
                 type="button"
                 className={`suggestion-item${index === highlightIndex ? ' is-active' : ''}`}
-                onClick={() => selectSuggestion(name)}
+                onClick={() => submitSuggestion(name)}
               >
                 <img src={getCharacterImageUrl(name)} alt={name} />
                 <span>{name}</span>

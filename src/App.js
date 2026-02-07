@@ -4,7 +4,7 @@ import useGameLogic from './hooks/useGameLogic'
 import GameGrid from './components/game/GameGrid'
 
 function App() {
-  const { guesses, addGuess, targetCharacter, allCharacters } = useGameLogic()
+  const { guesses, addGuess, resetGuesses, targetCharacter, allCharacters } = useGameLogic()
   console.log('Target Character:', targetCharacter)
 
   return (
@@ -12,7 +12,12 @@ function App() {
       <h1>Character Test</h1>
 
       {/* GuessInput only calls addGuess when user submits */}
-      <GuessInput onGuessSubmit={addGuess} allCharacters={allCharacters} guesses={guesses} />
+      <GuessInput
+        onGuessSubmit={addGuess}
+        onReset={resetGuesses}
+        allCharacters={allCharacters}
+        guesses={guesses}
+      />
 
       <GameGrid guesses={guesses} targetCharacter={targetCharacter} />
 
