@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { supabase } from '../../services/supabase'
 
 export default function GuessInput({
@@ -42,6 +42,22 @@ export default function GuessInput({
       .filter(name => !guessedNames.has(name.toLowerCase()))
       .slice(0, 6)
   }, [input, suggestions, guessedNames])
+
+  useEffect(() => {
+    if (!allCharacters.length) return
+    const uniqueNames = Array.from(new Set(
+      allCharacters
+        .map(c => c?.name)
+        .filter(Boolean)
+    ))
+
+    uniqueNames.forEach((name) => {
+      const url = getCharacterImageUrl(name)
+      if (!url) return
+      const img = new Image()
+      img.src = url
+    })
+  }, [allCharacters])
 
   const selectSuggestion = (name) => {
     setInput(name)
@@ -127,7 +143,7 @@ export default function GuessInput({
                 onClick={() => submitSuggestion(name)}
                 disabled={isDisabled}
               >
-                <img src={getCharacterImageUrl(name)} alt={name} />
+                <img src={getCharacterImageUrl(name)} alt={name} loading="eager" />
                 <span>{name}</span>
               </button>
             ))}

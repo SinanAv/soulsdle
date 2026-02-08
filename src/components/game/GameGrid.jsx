@@ -34,6 +34,7 @@ export default function GameGrid({ guesses, targetCharacter }) {
                   <img
                     src={imageUrl}
                     alt={value}
+                    loading="eager"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 )

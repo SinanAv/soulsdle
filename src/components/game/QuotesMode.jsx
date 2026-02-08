@@ -56,7 +56,7 @@ export default function QuotesMode() {
                 className={`quote-guess ${isCorrect ? 'is-correct' : 'is-wrong'}`}
               >
                 <div className="quote-guess-image">
-                  {imageUrl && <img src={imageUrl} alt={characterName || 'Character'} />}
+                  {imageUrl && <img src={imageUrl} alt={characterName || 'Character'} loading="eager" />}
                 </div>
                 <div className="quote-guess-name">{characterName || 'Unknown'}</div>
               </div>

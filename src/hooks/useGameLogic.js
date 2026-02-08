@@ -42,7 +42,6 @@ export default function useGameLogic() {
         JSON.stringify({ dateKey: todayKey, guesses })
       )
     } catch {
-      // Ignore storage errors (e.g. private mode or quota).
     }
   }, [guesses, GUESSES_STORAGE_KEY, todayKey])
 
@@ -83,19 +82,16 @@ export default function useGameLogic() {
     }
   }, [])
 
-  // Function to add a new guess
   const addGuess = (guessName) => {
     if (!guessName.trim()) return
     if (!targetCharacter) return
 
-    // Find the guessed character by name
     const guessedCharacter = allCharacters.find(
       c => c.name.toLowerCase() === guessName.toLowerCase()
     )
 
-    if (!guessedCharacter) return // ignore invalid names
+    if (!guessedCharacter) return 
 
-    // Generate hints
     const properties = ['name','gender','game','occupation','species','location','damage_type','weapon_type','HP']
     const hints = {}
 
@@ -133,7 +129,6 @@ export default function useGameLogic() {
       }
     })
 
-    // Add to guesses array: store both character and hints
     setGuesses(prev => [...prev, { character: guessedCharacter, hints }])
   }
 
