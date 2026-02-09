@@ -1,4 +1,7 @@
-import './App.css'
+import './styles/base.css'
+import './styles/home.css'
+import './styles/game.css'
+import './styles/quotes.css'
 import GuessInput from './components/game/GuessInput'
 import useGameLogic from './hooks/useGameLogic'
 import GameGrid from './components/game/GameGrid'

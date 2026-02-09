@@ -44,6 +44,19 @@ export default function GuessInput({
   }, [input, suggestions, guessedNames])
 
   useEffect(() => {
+    const query = input.trim()
+    if (!query) {
+      setHighlightIndex(-1)
+      return
+    }
+    if (filteredSuggestions.length > 0) {
+      setHighlightIndex(0)
+    } else {
+      setHighlightIndex(-1)
+    }
+  }, [input, filteredSuggestions])
+
+  useEffect(() => {
     if (!allCharacters.length) return
     const uniqueNames = Array.from(new Set(
       allCharacters

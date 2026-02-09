@@ -1,0 +1,64 @@
+﻿.mode-select {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.mode-select button,
+.mode-select .mode-button {
+  min-width: 220px;
+  padding: 16px 26px;
+  font-size: 1.05rem;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--bone-white);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.75), rgba(247, 147, 30, 0.85));
+  border: 1px solid rgba(255, 107, 53, 0.9);
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mode-select button::after,
+.mode-select .mode-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.25), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mode-select button:hover,
+.mode-select .mode-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(247, 147, 30, 0.85);
+  box-shadow: 0 12px 30px rgba(255, 107, 53, 0.35);
+}
+
+.mode-select button:hover::after,
+.mode-select .mode-button:hover::after {
+  opacity: 1;
+}
+
+.mode-select button:active,
+.mode-select .mode-button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+}
+
+.mode-select button:focus-visible,
+.mode-select .mode-button:focus-visible {
+  outline: 2px solid rgba(255, 107, 53, 0.8);
+  outline-offset: 4px;
+}

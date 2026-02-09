@@ -21,7 +21,7 @@ export default function GameGrid({ guesses, targetCharacter }) {
       </thead>
       <tbody>
         {displayGuesses.map((guessObj, i) => (
-          <tr key={i}>
+          <tr key={guessObj?.character?.id || i}>
             {properties.map((prop, propIndex) => {
               const value = guessObj.character[prop]
               const bg = guessObj.hints[prop] // 'green', 'yellow', or 'red'
@@ -35,7 +35,7 @@ export default function GameGrid({ guesses, targetCharacter }) {
                     src={imageUrl}
                     alt={value}
                     loading="eager"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 )
               }
@@ -57,10 +57,12 @@ export default function GameGrid({ guesses, targetCharacter }) {
                   style={{
                     backgroundColor: bg,
                     color: textColor,
-                    animationDelay: `${propIndex * 100}ms`
+                    animationDelay: `${propIndex * 320}ms`
                   }}
                 >
-                  {displayValue}
+                  <div className="guess-cell-inner">
+                    {displayValue}
+                  </div>
                 </td>
               )
             })}

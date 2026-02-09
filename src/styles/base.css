@@ -1,0 +1,128 @@
+﻿:root {
+  --flame-orange: #ff6b35;
+  --ember-gold: #f7931e;
+  --ash-gray: #2a2a2a;
+  --deep-black: #0f0f0f;
+  --bone-white: #e8dcc4;
+  --blood-red: #8b0000;
+  --soul-blue: #4a90e2;
+  --fog-gray: rgba(150, 150, 150, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Crimson Pro', serif;
+  background:
+    linear-gradient(180deg, rgba(15, 15, 15, 0.1) 0%, rgba(26, 26, 26, 0.55) 50%, rgba(15, 15, 15, 0.6) 100%),
+    url('/Soulsdle_Background.jpg') center/cover no-repeat fixed;
+  color: var(--bone-white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+}
+
+.App {
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 3.4rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, var(--bone-white) 0%, var(--ember-gold) 50%, var(--flame-orange) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+  margin-bottom: 1.2rem;
+}
+
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 1.5rem 0 1rem;
+}
+
+.mode-header button,
+.mode-header .back-button {
+  height: 44px;
+  padding: 0 16px;
+  font-size: 0.9rem;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(42, 42, 42, 0.8);
+  color: var(--bone-white);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--deep-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--flame-orange);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ember-gold);
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.6rem;
+  }
+}
