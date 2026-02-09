@@ -1,15 +1,16 @@
 {
   "files": {
-    "main.css": "/soulsdle/static/css/main.db004398.css",
-    "main.js": "/soulsdle/static/js/main.0ff1b71c.js",
+    "main.css": "/soulsdle/static/css/main.05be2406.css",
+    "main.js": "/soulsdle/static/js/main.92308841.js",
     "static/js/453.ab9c96c1.chunk.js": "/soulsdle/static/js/453.ab9c96c1.chunk.js",
+    "static/media/Soulsdle_Background.jpg": "/soulsdle/static/media/Soulsdle_Background.3072ff99a92ec3a0b96f.jpg",
     "index.html": "/soulsdle/index.html",
-    "main.db004398.css.map": "/soulsdle/static/css/main.db004398.css.map",
-    "main.0ff1b71c.js.map": "/soulsdle/static/js/main.0ff1b71c.js.map",
+    "main.05be2406.css.map": "/soulsdle/static/css/main.05be2406.css.map",
+    "main.92308841.js.map": "/soulsdle/static/js/main.92308841.js.map",
     "453.ab9c96c1.chunk.js.map": "/soulsdle/static/js/453.ab9c96c1.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.db004398.css",
-    "static/js/main.0ff1b71c.js"
+    "static/css/main.05be2406.css",
+    "static/js/main.92308841.js"
   ]
 }
