@@ -72,11 +72,6 @@ export default function GuessInput({
     })
   }, [allCharacters])
 
-  const selectSuggestion = (name) => {
-    setInput(name)
-    setHighlightIndex(-1)
-  }
-
   const submitSuggestion = (name) => {
     submitGuess(name)
   }

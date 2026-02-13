@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
 import getQuoteOfDay from '../utils/quoteOfDay'
 
@@ -77,7 +77,7 @@ export default function useQuoteLogic() {
         const rawQuotes = Array.isArray(quoteData) ? quoteData : []
         setAllCharacters(characters)
         setQuotes(rawQuotes)
-        setTargetQuote(getQuoteOfDay(rawQuotes))
+        setTargetQuote(await getQuoteOfDay(rawQuotes))
       }
 
       setLoading(false)
@@ -132,3 +132,4 @@ export default function useQuoteLogic() {
     lastGuessCorrect
   }
 }
+

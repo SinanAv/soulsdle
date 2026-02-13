@@ -69,7 +69,7 @@ export default function useGameLogic() {
       } else {
         const characters = Array.isArray(data) ? data : []
         setAllCharacters(characters)
-        setTargetCharacter(getCharacterOfDay(characters))
+        setTargetCharacter(await getCharacterOfDay(characters))
       }
 
       setLoading(false)
@@ -139,3 +139,4 @@ export default function useGameLogic() {
 
   return { guesses, addGuess, resetGuesses, targetCharacter, allCharacters, loading, error, isSolved }
 }
+
