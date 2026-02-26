@@ -51,6 +51,60 @@
   box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
 }
 
+.hint-panel {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hint-button-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hint-results {
+  width: 100%;
+}
+
+.hint-button {
+  height: 44px;
+  padding: 0 18px;
+  font-size: 0.9rem;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, var(--flame-orange) 0%, var(--ember-gold) 100%);
+  color: var(--deep-black);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.hint-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 20px rgba(255, 107, 53, 0.35);
+}
+
+.hint-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.hint-placeholder {
+  text-align: center;
+  margin: 0;
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.05rem;
+  color: var(--bone-white);
+}
+
 .suggestion-list {
   position: absolute;
   top: 100%;
