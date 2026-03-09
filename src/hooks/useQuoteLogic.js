@@ -19,6 +19,8 @@ export default function useQuoteLogic() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lastGuessCorrect, setLastGuessCorrect] = useState(null)
+  const [firstHintRevealed, setFirstHintRevealed] = useState(false)
+  const [secondHintRevealed, setSecondHintRevealed] = useState(false)
 
   const [guesses, setGuesses] = useState(() => {
     try {
@@ -37,16 +39,44 @@ export default function useQuoteLogic() {
     }
   })
 
+  const [firstHintUnlocked, setFirstHintUnlocked] = useState(() => {
+    try {
+      const raw = localStorage.getItem(QUOTE_GUESSES_STORAGE_KEY)
+      if (!raw) return false
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object' && parsed.dateKey === todayKey) {
+        return Boolean(parsed.firstHintUnlocked)
+      }
+      return false
+    } catch {
+      return false
+    }
+  })
+
+  const [secondHintUnlocked, setSecondHintUnlocked] = useState(() => {
+    try {
+      const raw = localStorage.getItem(QUOTE_GUESSES_STORAGE_KEY)
+      if (!raw) return false
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object' && parsed.dateKey === todayKey) {
+        return Boolean(parsed.secondHintUnlocked)
+      }
+      return false
+    } catch {
+      return false
+    }
+  })
+
   useEffect(() => {
     try {
       localStorage.setItem(
         QUOTE_GUESSES_STORAGE_KEY,
-        JSON.stringify({ dateKey: todayKey, guesses })
+        JSON.stringify({ dateKey: todayKey, guesses, firstHintUnlocked, secondHintUnlocked })
       )
     } catch {
       // Ignore storage errors (e.g. private mode or quota).
     }
-  }, [guesses, QUOTE_GUESSES_STORAGE_KEY, todayKey])
+  }, [guesses, firstHintUnlocked, secondHintUnlocked, QUOTE_GUESSES_STORAGE_KEY, todayKey])
 
   const resetGuesses = () => {
     setGuesses([])
@@ -112,6 +142,49 @@ export default function useQuoteLogic() {
     const isCorrect = guessedCharacter.id === targetCharacter.id
     setLastGuessCorrect(isCorrect)
     setGuesses(prev => [...prev, { character: guessedCharacter }])
+
+    if (!isCorrect && !firstHintUnlocked) {
+      setFirstHintUnlocked(true)
+    }
+
+    if (!isCorrect) {
+      const wrongGuessesToday = guesses.filter(
+        g => String(g?.character?.id) !== String(targetCharacter?.id)
+      ).length + 1
+
+      if (wrongGuessesToday >= 3 && !secondHintUnlocked) {
+        setSecondHintUnlocked(true)
+      }
+    }
+  }
+
+  const hintQuotes = useMemo(() => {
+    if (!targetCharacter || quotes.length === 0) return []
+    const targetQuoteText = String(targetQuote?.quote || '').trim().toLowerCase()
+    const seen = new Set()
+
+    return quotes
+      .filter(q => String(q?.character_id) === String(targetCharacter?.id) && q?.quote)
+      .map(q => String(q.quote).trim())
+      .filter(quoteText => {
+        const normalized = quoteText.toLowerCase()
+        if (!normalized || normalized === targetQuoteText || seen.has(normalized)) return false
+        seen.add(normalized)
+        return true
+      })
+  }, [quotes, targetCharacter, targetQuote])
+
+  const firstHintQuote = hintQuotes[0] || null
+  const secondHintQuote = hintQuotes[1] || null
+
+  const toggleFirstHint = () => {
+    if (!firstHintUnlocked) return
+    setFirstHintRevealed(prev => !prev)
+  }
+
+  const toggleSecondHint = () => {
+    if (!secondHintUnlocked) return
+    setSecondHintRevealed(prev => !prev)
   }
 
   const isSolved = Boolean(
@@ -129,7 +202,15 @@ export default function useQuoteLogic() {
     loading,
     error,
     isSolved,
-    lastGuessCorrect
+    lastGuessCorrect,
+    firstHintUnlocked,
+    firstHintRevealed,
+    firstHintQuote,
+    toggleFirstHint,
+    secondHintUnlocked,
+    secondHintRevealed,
+    secondHintQuote,
+    toggleSecondHint
   }
 }
 

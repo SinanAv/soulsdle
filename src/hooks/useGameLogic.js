@@ -19,7 +19,7 @@ export default function useGameLogic() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [firstHintRevealed, setFirstHintRevealed] = useState(false)
-  const [nameLengthHintRevealed, setNameLengthHintRevealed] = useState(false)
+  const [locationHintRevealed, setLocationHintRevealed] = useState(false)
 
   const [guesses, setGuesses] = useState(() => {
     try {
@@ -54,14 +54,14 @@ export default function useGameLogic() {
     }
   })
 
-  const [nameLengthHintUnlocked, setNameLengthHintUnlocked] = useState(() => {
+  const [locationHintUnlocked, setLocationHintUnlocked] = useState(() => {
     try {
       const raw = localStorage.getItem(GUESSES_STORAGE_KEY)
       if (!raw) return false
       const parsed = JSON.parse(raw)
       if (parsed && typeof parsed === 'object') {
         if (parsed.dateKey === todayKey) {
-          return Boolean(parsed.nameLengthHintUnlocked)
+          return Boolean(parsed.locationHintUnlocked || parsed.nameLengthHintUnlocked)
         }
       }
       return false
@@ -74,11 +74,11 @@ export default function useGameLogic() {
     try {
       localStorage.setItem(
         GUESSES_STORAGE_KEY,
-        JSON.stringify({ dateKey: todayKey, guesses, firstHintUnlocked, nameLengthHintUnlocked })
+        JSON.stringify({ dateKey: todayKey, guesses, firstHintUnlocked, locationHintUnlocked })
       )
     } catch {
     }
-  }, [guesses, firstHintUnlocked, nameLengthHintUnlocked, GUESSES_STORAGE_KEY, todayKey])
+  }, [guesses, firstHintUnlocked, locationHintUnlocked, GUESSES_STORAGE_KEY, todayKey])
 
   const resetGuesses = () => {
     setGuesses([])
@@ -189,8 +189,8 @@ export default function useGameLogic() {
         g => String(g?.character?.name).toLowerCase() !== String(targetCharacter?.name).toLowerCase()
       ).length + 1
 
-      if (wrongGuessesToday >= 3 && !nameLengthHintUnlocked) {
-        setNameLengthHintUnlocked(true)
+      if (wrongGuessesToday >= 3 && !locationHintUnlocked) {
+        setLocationHintUnlocked(true)
       }
     }
   }
@@ -200,14 +200,12 @@ export default function useGameLogic() {
     setFirstHintRevealed(prev => !prev)
   }
 
-  const toggleNameLengthHint = () => {
-    if (!nameLengthHintUnlocked) return
-    setNameLengthHintRevealed(prev => !prev)
+  const toggleLocationHint = () => {
+    if (!locationHintUnlocked) return
+    setLocationHintRevealed(prev => !prev)
   }
 
-  const nameLengthHintValue = targetCharacter?.name
-    ? targetCharacter.name.replace(/\s+/g, '').length
-    : null
+  const locationHintValue = targetCharacter?.location || null
 
   const isSolved = Boolean(
     targetCharacter &&
@@ -227,10 +225,10 @@ export default function useGameLogic() {
     firstHintUnlocked,
     firstHintRevealed,
     toggleFirstHint,
-    nameLengthHintUnlocked,
-    nameLengthHintRevealed,
-    toggleNameLengthHint,
-    nameLengthHintValue
+    locationHintUnlocked,
+    locationHintRevealed,
+    toggleLocationHint,
+    locationHintValue
   }
 }
 

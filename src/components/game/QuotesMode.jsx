@@ -11,7 +11,15 @@ export default function QuotesMode() {
     targetQuote,
     targetCharacter,
     allCharacters,
-    isSolved
+    isSolved,
+    firstHintUnlocked,
+    firstHintRevealed,
+    firstHintQuote,
+    toggleFirstHint,
+    secondHintUnlocked,
+    secondHintRevealed,
+    secondHintQuote,
+    toggleSecondHint
   } = useQuoteLogic()
 
   const getCharacterImageUrl = (name) => {
@@ -39,6 +47,34 @@ export default function QuotesMode() {
           allCharacters={allCharacters}
           guesses={guesses}
         />
+      </div>
+      <div className="hint-panel">
+        <div className="hint-button-row">
+          <button
+            type="button"
+            className="hint-button"
+            onClick={toggleFirstHint}
+            disabled={!firstHintUnlocked}
+          >
+            Quote Hint 
+          </button>
+          <button
+            type="button"
+            className="hint-button"
+            onClick={toggleSecondHint}
+            disabled={!secondHintUnlocked}
+          >
+            Quote Hint 2
+          </button>
+        </div>
+        <div className="hint-results">
+          {firstHintRevealed && (
+            <p className="hint-placeholder">{firstHintQuote || 'No extra quote available.'}</p>
+          )}
+          {secondHintRevealed && (
+            <p className="hint-placeholder">{secondHintQuote || 'No third quote available.'}</p>
+          )}
+        </div>
       </div>
 
       {displayGuesses.length > 0 && (

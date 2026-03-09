@@ -28,10 +28,10 @@ function CharacterMode() {
     firstHintUnlocked,
     firstHintRevealed,
     toggleFirstHint,
-    nameLengthHintUnlocked,
-    nameLengthHintRevealed,
-    toggleNameLengthHint,
-    nameLengthHintValue
+    locationHintUnlocked,
+    locationHintRevealed,
+    toggleLocationHint,
+    locationHintValue
   } = useGameLogic()
   console.log('character of the day:', targetCharacter)
 
@@ -60,21 +60,19 @@ function CharacterMode() {
           <button
             type="button"
             className="hint-button"
-            onClick={toggleNameLengthHint}
-            disabled={!nameLengthHintUnlocked}
+            onClick={toggleLocationHint}
+            disabled={!locationHintUnlocked}
           >
-            Name Length Hint
+            Location Hint
           </button>
         </div>
         <div className="hint-results">
           {firstHintRevealed && (
             <p className="hint-placeholder">{firstHintQuote || 'No quote hint available.'}</p>
           )}
-          {nameLengthHintRevealed && (
+          {locationHintRevealed && (
             <p className="hint-placeholder">
-              {nameLengthHintValue == null
-                ? 'No name length hint available.'
-                : `Name length: ${nameLengthHintValue}`}
+              {locationHintValue || 'No location hint available.'}
             </p>
           )}
         </div>
