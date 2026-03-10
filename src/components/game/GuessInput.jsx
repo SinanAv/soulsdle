@@ -1,5 +1,15 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../services/supabase'
+
+const getCharacterImageUrl = (name) => {
+  if (!name) return ''
+  return supabase.storage.from('imagesofcharacters').getPublicUrl(`${name}.jpg`).data.publicUrl
+}
+
+const getUniqueNames = (characters = []) => {
+  const names = characters.map((character) => character?.name).filter(Boolean)
+  return Array.from(new Set(names))
+}
 
 export default function GuessInput({
   onGuessSubmit,
@@ -12,34 +22,24 @@ export default function GuessInput({
   const [input, setInput] = useState('')
   const [highlightIndex, setHighlightIndex] = useState(-1)
 
-  const getCharacterImageUrl = (name) => {
-    if (!name) return ''
-    const fileName = `${name}.jpg`
-    return supabase.storage.from('imagesofcharacters').getPublicUrl(fileName).data.publicUrl
-  }
-
   const guessedNames = useMemo(() => {
     return new Set(
       guesses
-        .map(g => g?.character?.name)
+        .map((guess) => guess?.character?.name)
         .filter(Boolean)
-        .map(name => name.toLowerCase())
+        .map((name) => name.toLowerCase())
     )
   }, [guesses])
 
-  const suggestions = useMemo(() => {
-    const names = allCharacters
-      .map(c => c?.name)
-      .filter(Boolean)
-    return Array.from(new Set(names))
-  }, [allCharacters])
+  const suggestions = useMemo(() => getUniqueNames(allCharacters), [allCharacters])
 
   const filteredSuggestions = useMemo(() => {
     const query = input.trim().toLowerCase()
     if (!query) return []
+
     return suggestions
-      .filter(name => name.toLowerCase().includes(query))
-      .filter(name => !guessedNames.has(name.toLowerCase()))
+      .filter((name) => name.toLowerCase().includes(query))
+      .filter((name) => !guessedNames.has(name.toLowerCase()))
       .slice(0, 6)
   }, [input, suggestions, guessedNames])
 
@@ -49,32 +49,21 @@ export default function GuessInput({
       setHighlightIndex(-1)
       return
     }
-    if (filteredSuggestions.length > 0) {
-      setHighlightIndex(0)
-    } else {
-      setHighlightIndex(-1)
-    }
+
+    setHighlightIndex(filteredSuggestions.length > 0 ? 0 : -1)
   }, [input, filteredSuggestions])
 
   useEffect(() => {
     if (!allCharacters.length) return
-    const uniqueNames = Array.from(new Set(
-      allCharacters
-        .map(c => c?.name)
-        .filter(Boolean)
-    ))
 
-    uniqueNames.forEach((name) => {
+    getUniqueNames(allCharacters).forEach((name) => {
       const url = getCharacterImageUrl(name)
       if (!url) return
+
       const img = new Image()
       img.src = url
     })
   }, [allCharacters])
-
-  const submitSuggestion = (name) => {
-    submitGuess(name)
-  }
 
   const submitGuess = (value) => {
     if (!value.trim()) return
@@ -83,10 +72,10 @@ export default function GuessInput({
     setHighlightIndex(-1)
   }
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowDown') {
+  const handleKeyDown = (event) => {
+    if (event.key === 'ArrowDown') {
       if (filteredSuggestions.length === 0) return
-      e.preventDefault()
+      event.preventDefault()
       setHighlightIndex((prev) => {
         const next = prev + 1
         return next >= filteredSuggestions.length ? 0 : next
@@ -94,9 +83,9 @@ export default function GuessInput({
       return
     }
 
-    if (e.key === 'ArrowUp') {
+    if (event.key === 'ArrowUp') {
       if (filteredSuggestions.length === 0) return
-      e.preventDefault()
+      event.preventDefault()
       setHighlightIndex((prev) => {
         const next = prev - 1
         return next < 0 ? filteredSuggestions.length - 1 : next
@@ -104,21 +93,15 @@ export default function GuessInput({
       return
     }
 
-    if (e.key === 'Enter') {
-      e.preventDefault()
+    if (event.key === 'Enter') {
+      event.preventDefault()
       if (highlightIndex >= 0 && highlightIndex < filteredSuggestions.length) {
-        const selected = filteredSuggestions[highlightIndex]
-        submitGuess(selected)
+        submitGuess(filteredSuggestions[highlightIndex])
       } else {
         submitGuess(input)
       }
     }
   }
-
-  const handleSubmit = () => {
-    submitGuess(input)
-  }
-
 
   return (
     <div>
@@ -132,15 +115,16 @@ export default function GuessInput({
               type="text"
               value={input}
               disabled={isDisabled}
-              onChange={(e) => {
-                setInput(e.target.value)
+              onChange={(event) => {
+                setInput(event.target.value)
                 setHighlightIndex(-1)
               }}
               onKeyDown={handleKeyDown}
             />
-            <button onClick={handleSubmit} disabled={isDisabled}>Guess</button>
+            <button onClick={() => submitGuess(input)} disabled={isDisabled}>Guess</button>
           </div>
         )}
+
         {!isDisabled && filteredSuggestions.length > 0 && (
           <div className="suggestion-list">
             {filteredSuggestions.map((name, index) => (
@@ -148,7 +132,7 @@ export default function GuessInput({
                 key={name}
                 type="button"
                 className={`suggestion-item${index === highlightIndex ? ' is-active' : ''}`}
-                onClick={() => submitSuggestion(name)}
+                onClick={() => submitGuess(name)}
                 disabled={isDisabled}
               >
                 <img src={getCharacterImageUrl(name)} alt={name} loading="eager" />

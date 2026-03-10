@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
 import getCharacterOfDay from '../utils/characterOfDay'
+
+const GUESSES_STORAGE_KEY = 'soulsdle:guesses'
+const CHARACTER_PROPERTIES = ['name', 'gender', 'game', 'occupation', 'species', 'location', 'damage_type', 'weapon_type', 'HP']
 
 const getTodayKey = () => {
   const today = new Date()
@@ -10,8 +13,46 @@ const getTodayKey = () => {
   return `${yyyy}-${mm}-${dd}`
 }
 
+const readStoredState = (storageKey) => {
+  try {
+    const raw = localStorage.getItem(storageKey)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const toValueSet = (value) => {
+  if (value == null) return new Set()
+
+  if (Array.isArray(value)) {
+    return new Set(value.map((item) => String(item).trim().toLowerCase()).filter(Boolean))
+  }
+
+  if (typeof value === 'number') return new Set([String(value)])
+
+  const normalized = String(value)
+    .toLowerCase()
+    .replace(/\s+and\s+/g, ',')
+    .replace(/[/&]/g, ',')
+
+  return new Set(
+    normalized
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  )
+}
+
+const isNameMatch = (left, right) => {
+  return String(left).toLowerCase() === String(right).toLowerCase()
+}
+
 export default function useGameLogic() {
-  const GUESSES_STORAGE_KEY = 'soulsdle:guesses'
   const todayKey = getTodayKey()
   const [allCharacters, setAllCharacters] = useState([])
   const [quotes, setQuotes] = useState([])
@@ -22,52 +63,21 @@ export default function useGameLogic() {
   const [locationHintRevealed, setLocationHintRevealed] = useState(false)
 
   const [guesses, setGuesses] = useState(() => {
-    try {
-      const raw = localStorage.getItem(GUESSES_STORAGE_KEY)
-      if (!raw) return []
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return []
-      if (parsed && typeof parsed === 'object') {
-        if (parsed.dateKey === todayKey && Array.isArray(parsed.guesses)) {
-          return parsed.guesses
-        }
-      }
-      return []
-    } catch {
-      return []
-    }
+    const parsed = readStoredState(GUESSES_STORAGE_KEY)
+    if (!parsed || parsed.dateKey !== todayKey || !Array.isArray(parsed.guesses)) return []
+    return parsed.guesses
   })
 
   const [firstHintUnlocked, setFirstHintUnlocked] = useState(() => {
-    try {
-      const raw = localStorage.getItem(GUESSES_STORAGE_KEY)
-      if (!raw) return false
-      const parsed = JSON.parse(raw)
-      if (parsed && typeof parsed === 'object') {
-        if (parsed.dateKey === todayKey) {
-          return Boolean(parsed.firstHintUnlocked)
-        }
-      }
-      return false
-    } catch {
-      return false
-    }
+    const parsed = readStoredState(GUESSES_STORAGE_KEY)
+    if (!parsed || parsed.dateKey !== todayKey) return false
+    return Boolean(parsed.firstHintUnlocked)
   })
 
   const [locationHintUnlocked, setLocationHintUnlocked] = useState(() => {
-    try {
-      const raw = localStorage.getItem(GUESSES_STORAGE_KEY)
-      if (!raw) return false
-      const parsed = JSON.parse(raw)
-      if (parsed && typeof parsed === 'object') {
-        if (parsed.dateKey === todayKey) {
-          return Boolean(parsed.locationHintUnlocked || parsed.nameLengthHintUnlocked)
-        }
-      }
-      return false
-    } catch {
-      return false
-    }
+    const parsed = readStoredState(GUESSES_STORAGE_KEY)
+    if (!parsed || parsed.dateKey !== todayKey) return false
+    return Boolean(parsed.locationHintUnlocked || parsed.nameLengthHintUnlocked)
   })
 
   useEffect(() => {
@@ -77,8 +87,9 @@ export default function useGameLogic() {
         JSON.stringify({ dateKey: todayKey, guesses, firstHintUnlocked, locationHintUnlocked })
       )
     } catch {
+      // Ignore storage errors.
     }
-  }, [guesses, firstHintUnlocked, locationHintUnlocked, GUESSES_STORAGE_KEY, todayKey])
+  }, [guesses, firstHintUnlocked, locationHintUnlocked, todayKey])
 
   const resetGuesses = () => {
     setGuesses([])
@@ -121,72 +132,55 @@ export default function useGameLogic() {
     }
   }, [])
 
-  const firstHintQuote = (() => {
+  const firstHintQuote = useMemo(() => {
     if (!targetCharacter) return null
+
     const characterQuotes = quotes.filter(
-      q => String(q?.character_id) === String(targetCharacter?.id) && q?.quote
+      (quote) => String(quote?.character_id) === String(targetCharacter?.id) && quote?.quote
     )
+
     if (characterQuotes.length === 0) return null
     return characterQuotes[0]?.quote || null
-  })()
+  }, [quotes, targetCharacter])
 
   const addGuess = (guessName) => {
     if (!guessName.trim()) return
     if (!targetCharacter) return
 
     const guessedCharacter = allCharacters.find(
-      c => c.name.toLowerCase() === guessName.toLowerCase()
+      (character) => character.name.toLowerCase() === guessName.toLowerCase()
     )
+    if (!guessedCharacter) return
 
-    if (!guessedCharacter) return 
-
-    const properties = ['name','gender','game','occupation','species','location','damage_type','weapon_type','HP']
     const hints = {}
-
-    const toValueSet = (value) => {
-      if (value == null) return new Set()
-      if (Array.isArray(value)) {
-        return new Set(value.map(v => String(v).trim().toLowerCase()).filter(Boolean))
+    CHARACTER_PROPERTIES.forEach((property) => {
+      if (guessedCharacter[property] === targetCharacter[property]) {
+        hints[property] = 'green'
+        return
       }
-      if (typeof value === 'number') return new Set([String(value)])
-      const normalized = String(value)
-        .toLowerCase()
-        .replace(/\s+and\s+/g, ',')
-        .replace(/[/&]/g, ',')
-      return new Set(
-        normalized
-          .split(',')
-          .map(v => v.trim())
-          .filter(Boolean)
-      )
-    }
 
-    properties.forEach(prop => {
-      if (guessedCharacter[prop] === targetCharacter[prop]) {
-        hints[prop] = 'green'
-      } else {
-        const isNumber = typeof guessedCharacter[prop] === 'number' || typeof targetCharacter[prop] === 'number'
-        if (!isNumber) {
-          const guessSet = toValueSet(guessedCharacter[prop])
-          const targetSet = toValueSet(targetCharacter[prop])
-          const hasOverlap = [...guessSet].some(v => targetSet.has(v))
-          hints[prop] = hasOverlap ? 'yellow' : 'red'
-        } else {
-          hints[prop] = 'red'
-        }
+      const isNumber = typeof guessedCharacter[property] === 'number' || typeof targetCharacter[property] === 'number'
+      if (isNumber) {
+        hints[property] = 'red'
+        return
       }
+
+      const guessSet = toValueSet(guessedCharacter[property])
+      const targetSet = toValueSet(targetCharacter[property])
+      const hasOverlap = [...guessSet].some((value) => targetSet.has(value))
+      hints[property] = hasOverlap ? 'yellow' : 'red'
     })
 
-    setGuesses(prev => [...prev, { character: guessedCharacter, hints }])
+    setGuesses((prev) => [...prev, { character: guessedCharacter, hints }])
 
-    const guessedCorrectly = String(guessedCharacter?.name).toLowerCase() === String(targetCharacter?.name).toLowerCase()
+    const guessedCorrectly = isNameMatch(guessedCharacter?.name, targetCharacter?.name)
     if (!guessedCorrectly && !firstHintUnlocked) {
       setFirstHintUnlocked(true)
     }
 
     if (!guessedCorrectly) {
       const wrongGuessesToday = guesses.filter(
-        g => String(g?.character?.name).toLowerCase() !== String(targetCharacter?.name).toLowerCase()
+        (guess) => !isNameMatch(guess?.character?.name, targetCharacter?.name)
       ).length + 1
 
       if (wrongGuessesToday >= 3 && !locationHintUnlocked) {
@@ -197,19 +191,18 @@ export default function useGameLogic() {
 
   const toggleFirstHint = () => {
     if (!firstHintUnlocked) return
-    setFirstHintRevealed(prev => !prev)
+    setFirstHintRevealed((prev) => !prev)
   }
 
   const toggleLocationHint = () => {
     if (!locationHintUnlocked) return
-    setLocationHintRevealed(prev => !prev)
+    setLocationHintRevealed((prev) => !prev)
   }
 
   const locationHintValue = targetCharacter?.location || null
 
   const isSolved = Boolean(
-    targetCharacter &&
-    guesses.some(g => String(g?.character?.name).toLowerCase() === String(targetCharacter?.name).toLowerCase())
+    targetCharacter && guesses.some((guess) => isNameMatch(guess?.character?.name, targetCharacter?.name))
   )
 
   return {
@@ -231,4 +224,3 @@ export default function useGameLogic() {
     locationHintValue
   }
 }
-

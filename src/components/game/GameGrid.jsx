@@ -1,38 +1,49 @@
 import { supabase } from '../../services/supabase'
 
-export default function GameGrid({ guesses, targetCharacter }) {
-  const properties = ['name','gender','game','occupation','species','location','damage_type','weapon_type','HP']
-  const displayGuesses = [...guesses].reverse()
+const PROPERTIES = ['name', 'gender', 'game', 'occupation', 'species', 'location', 'damage_type', 'weapon_type', 'HP']
 
-  const getCharacterImageUrl = (name) => {
-    if (!name) return ''
-    const fileName = `${name}.jpg`
-    return supabase.storage.from('imagesofcharacters').getPublicUrl(fileName).data.publicUrl
-  }
+const getCharacterImageUrl = (name) => {
+  if (!name) return ''
+  return supabase.storage.from('imagesofcharacters').getPublicUrl(`${name}.jpg`).data.publicUrl
+}
+
+const getHpDisplayValue = (value, targetCharacter) => {
+  if (!targetCharacter || value == null) return value
+
+  const guessHp = Number(value)
+  const targetHp = Number(targetCharacter.HP)
+  if (Number.isNaN(guessHp) || Number.isNaN(targetHp) || guessHp === targetHp) return value
+
+  const arrow = guessHp < targetHp ? '↑' : '↓'
+  return `${value} ${arrow}`
+}
+
+export default function GameGrid({ guesses, targetCharacter }) {
+  const displayGuesses = [...guesses].reverse()
 
   return (
     <table className="game-grid">
       <thead>
         <tr>
-          {properties.map(prop => (
-            <th key={prop}>{prop.toUpperCase()}</th>
+          {PROPERTIES.map((property) => (
+            <th key={property}>{property.toUpperCase()}</th>
           ))}
         </tr>
       </thead>
+
       <tbody>
         {displayGuesses.map((guessObj, i) => (
           <tr key={guessObj?.character?.id || i}>
-            {properties.map((prop, propIndex) => {
-              const value = guessObj.character[prop]
-              const bg = guessObj.hints[prop] // 'green', 'yellow', or 'red'
-              let displayValue = value
+            {PROPERTIES.map((property, propertyIndex) => {
+              const value = guessObj.character[property]
+              const bg = guessObj.hints[property]
               const textColor = bg === 'yellow' ? '#000' : undefined
 
-              if (prop === 'name') {
-                const imageUrl = getCharacterImageUrl(value)
+              let displayValue = value
+              if (property === 'name') {
                 displayValue = (
                   <img
-                    src={imageUrl}
+                    src={getCharacterImageUrl(value)}
                     alt={value}
                     loading="eager"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -40,29 +51,21 @@ export default function GameGrid({ guesses, targetCharacter }) {
                 )
               }
 
-              if (prop === 'HP' && targetCharacter && value != null) {
-                const guessHp = Number(value)
-                const targetHp = Number(targetCharacter.HP)
-
-                if (!Number.isNaN(guessHp) && !Number.isNaN(targetHp) && guessHp !== targetHp) {
-                  const arrow = guessHp < targetHp ? '↑' : '↓'
-                  displayValue = `${value} ${arrow}`
-                }
+              if (property === 'HP') {
+                displayValue = getHpDisplayValue(value, targetCharacter)
               }
 
               return (
                 <td
-                  key={prop}
+                  key={property}
                   className="guess-cell-animate"
                   style={{
                     backgroundColor: bg,
                     color: textColor,
-                    animationDelay: `${propIndex * 320}ms`
+                    animationDelay: `${propertyIndex * 320}ms`
                   }}
                 >
-                  <div className="guess-cell-inner">
-                    {displayValue}
-                  </div>
+                  <div className="guess-cell-inner">{displayValue}</div>
                 </td>
               )
             })}

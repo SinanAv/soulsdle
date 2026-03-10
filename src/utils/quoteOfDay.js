@@ -1,21 +1,5 @@
-export default async function getQuoteOfDay(quotes = []) {
-  if (!Array.isArray(quotes) || quotes.length === 0) return null
+import getDailyItem from './getDailyItem'
 
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, '0')
-  const dd = String(today.getDate()).padStart(2, '0')
-  const dateKey = `${yyyy}-${mm}-${dd}`
-
-  const encoded = new TextEncoder().encode(dateKey)
-  const digest = await crypto.subtle.digest('SHA-256', encoded)
-  const bytes = new Uint8Array(digest)
-
-  let hash = 0
-  for (let i = 0; i < 4; i += 1) {
-    hash = (hash << 8) | bytes[i]
-  }
-
-  const index = (hash >>> 0) % quotes.length
-  return quotes[index] || null
+export default function getQuoteOfDay(quotes = []) {
+  return getDailyItem(quotes)
 }

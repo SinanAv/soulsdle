@@ -1,7 +1,17 @@
-﻿import GuessInput from './GuessInput'
+import GuessInput from './GuessInput'
 import { supabase } from '../../services/supabase'
 import useQuoteLogic from '../../hooks/useQuoteLogic'
 import { Link } from 'react-router-dom'
+
+const HINT_BUTTONS = [
+  { key: 'first', label: 'Quote Hint' },
+  { key: 'second', label: 'Quote Hint 2' }
+]
+
+const getCharacterImageUrl = (name) => {
+  if (!name) return ''
+  return supabase.storage.from('imagesofcharacters').getPublicUrl(`${name}.jpg`).data.publicUrl
+}
 
 export default function QuotesMode() {
   const {
@@ -11,7 +21,6 @@ export default function QuotesMode() {
     targetQuote,
     targetCharacter,
     allCharacters,
-    isSolved,
     firstHintUnlocked,
     firstHintRevealed,
     firstHintQuote,
@@ -22,14 +31,12 @@ export default function QuotesMode() {
     toggleSecondHint
   } = useQuoteLogic()
 
-  const getCharacterImageUrl = (name) => {
-    if (!name) return ''
-    const fileName = `${name}.jpg`
-    return supabase.storage.from('imagesofcharacters').getPublicUrl(fileName).data.publicUrl
-  }
-
   const quoteText = targetQuote?.quote || 'Loading quote...'
   const displayGuesses = [...guesses].reverse()
+  const hintConfig = {
+    first: { unlocked: firstHintUnlocked, onClick: toggleFirstHint },
+    second: { unlocked: secondHintUnlocked, onClick: toggleSecondHint }
+  }
 
   return (
     <div className="quotes-mode">
@@ -48,25 +55,22 @@ export default function QuotesMode() {
           guesses={guesses}
         />
       </div>
+
       <div className="hint-panel">
         <div className="hint-button-row">
-          <button
-            type="button"
-            className="hint-button"
-            onClick={toggleFirstHint}
-            disabled={!firstHintUnlocked}
-          >
-            Quote Hint 
-          </button>
-          <button
-            type="button"
-            className="hint-button"
-            onClick={toggleSecondHint}
-            disabled={!secondHintUnlocked}
-          >
-            Quote Hint 2
-          </button>
+          {HINT_BUTTONS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              className="hint-button"
+              onClick={hintConfig[key].onClick}
+              disabled={!hintConfig[key].unlocked}
+            >
+              {label}
+            </button>
+          ))}
         </div>
+
         <div className="hint-results">
           {firstHintRevealed && (
             <p className="hint-placeholder">{firstHintQuote || 'No extra quote available.'}</p>
@@ -80,10 +84,11 @@ export default function QuotesMode() {
       {displayGuesses.length > 0 && (
         <div className="quote-guess-list">
           {displayGuesses.map((guess, index) => {
-            const characterName = guess?.character?.name
+            const character = guess?.character
+            const characterName = character?.name
             const imageUrl = getCharacterImageUrl(characterName)
             const isCorrect = Boolean(
-              targetCharacter && String(guess?.character?.id) === String(targetCharacter?.id)
+              targetCharacter && String(character?.id) === String(targetCharacter?.id)
             )
 
             return (
@@ -96,8 +101,8 @@ export default function QuotesMode() {
                 </div>
                 <div className="quote-guess-name">{characterName || 'Unknown'}</div>
               </div>
-            )}
-          )}
+            )
+          })}
         </div>
       )}
     </div>
