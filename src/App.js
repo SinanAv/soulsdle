@@ -6,11 +6,13 @@ import { Link, Route, Routes } from 'react-router-dom'
 import GuessInput from './components/game/GuessInput'
 import GameGrid from './components/game/GameGrid'
 import QuotesMode from './components/game/QuotesMode'
+import LocationMode from './components/game/LocationMode'
 import useGameLogic from './hooks/useGameLogic'
 
 const HOME_MODES = [
   { to: '/character', label: 'Character of the Day' },
-  { to: '/quotes', label: 'Quotes' }
+  { to: '/quotes', label: 'Quotes' },
+  { to: '/locations', label: 'Location Splash' }
 ]
 
 const CHARACTER_HINT_BUTTONS = [
@@ -104,6 +106,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/character" element={<CharacterMode />} />
         <Route path="/quotes" element={<QuotesMode />} />
+        <Route path="/locations" element={<LocationMode />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </div>

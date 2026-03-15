@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { supabase } from '../../services/supabase'
+import getStoragePublicUrl from '../../utils/getStoragePublicUrl'
 
 const getCharacterImageUrl = (name) => {
-  if (!name) return ''
-  return supabase.storage.from('imagesofcharacters').getPublicUrl(`${name}.jpg`).data.publicUrl
+  return getStoragePublicUrl('imagesofcharacters', name)
 }
 
 const getUniqueNames = (characters = []) => {
@@ -17,7 +16,8 @@ export default function GuessInput({
   isDisabled = false,
   hideWhenDisabled = true,
   allCharacters = [],
-  guesses = []
+  guesses = [],
+  showSuggestionImages = true
 }) {
   const [input, setInput] = useState('')
   const [highlightIndex, setHighlightIndex] = useState(-1)
@@ -135,7 +135,9 @@ export default function GuessInput({
                 onClick={() => submitGuess(name)}
                 disabled={isDisabled}
               >
-                <img src={getCharacterImageUrl(name)} alt={name} loading="eager" />
+                {showSuggestionImages && (
+                  <img src={getCharacterImageUrl(name)} alt={name} loading="eager" />
+                )}
                 <span>{name}</span>
               </button>
             ))}
