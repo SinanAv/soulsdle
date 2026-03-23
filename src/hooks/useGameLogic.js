@@ -1,17 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
-import getCharacterOfDay from '../utils/characterOfDay'
 
 const GUESSES_STORAGE_KEY = 'soulsdle:guesses'
 const CHARACTER_PROPERTIES = ['name', 'gender', 'game', 'occupation', 'species', 'location', 'damage_type', 'weapon_type', 'HP']
-
-const getTodayKey = () => {
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, '0')
-  const dd = String(today.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-}
 
 const readStoredState = (storageKey) => {
   try {
@@ -53,43 +44,43 @@ const isNameMatch = (left, right) => {
 }
 
 export default function useGameLogic() {
-  const todayKey = getTodayKey()
   const [allCharacters, setAllCharacters] = useState([])
   const [quotes, setQuotes] = useState([])
   const [targetCharacter, setTargetCharacter] = useState(null)
+  const [activeDayKey, setActiveDayKey] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [firstHintRevealed, setFirstHintRevealed] = useState(false)
   const [locationHintRevealed, setLocationHintRevealed] = useState(false)
 
-  const [guesses, setGuesses] = useState(() => {
-    const parsed = readStoredState(GUESSES_STORAGE_KEY)
-    if (!parsed || parsed.dateKey !== todayKey || !Array.isArray(parsed.guesses)) return []
-    return parsed.guesses
-  })
-
-  const [firstHintUnlocked, setFirstHintUnlocked] = useState(() => {
-    const parsed = readStoredState(GUESSES_STORAGE_KEY)
-    if (!parsed || parsed.dateKey !== todayKey) return false
-    return Boolean(parsed.firstHintUnlocked)
-  })
-
-  const [locationHintUnlocked, setLocationHintUnlocked] = useState(() => {
-    const parsed = readStoredState(GUESSES_STORAGE_KEY)
-    if (!parsed || parsed.dateKey !== todayKey) return false
-    return Boolean(parsed.locationHintUnlocked || parsed.nameLengthHintUnlocked)
-  })
+  const [guesses, setGuesses] = useState([])
+  const [firstHintUnlocked, setFirstHintUnlocked] = useState(false)
+  const [locationHintUnlocked, setLocationHintUnlocked] = useState(false)
 
   useEffect(() => {
+    if (!activeDayKey) return
+
+    const parsed = readStoredState(GUESSES_STORAGE_KEY)
+    setGuesses(parsed?.dateKey === activeDayKey && Array.isArray(parsed.guesses) ? parsed.guesses : [])
+    setFirstHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.firstHintUnlocked) : false)
+    setLocationHintUnlocked(
+      parsed?.dateKey === activeDayKey
+        ? Boolean(parsed.locationHintUnlocked || parsed.nameLengthHintUnlocked)
+        : false
+    )
+  }, [activeDayKey])
+
+  useEffect(() => {
+    if (!activeDayKey) return
     try {
       localStorage.setItem(
         GUESSES_STORAGE_KEY,
-        JSON.stringify({ dateKey: todayKey, guesses, firstHintUnlocked, locationHintUnlocked })
+        JSON.stringify({ dateKey: activeDayKey, guesses, firstHintUnlocked, locationHintUnlocked })
       )
     } catch {
       // Ignore storage errors.
     }
-  }, [guesses, firstHintUnlocked, locationHintUnlocked, todayKey])
+  }, [activeDayKey, guesses, firstHintUnlocked, locationHintUnlocked])
 
   const resetGuesses = () => {
     setGuesses([])
@@ -114,12 +105,35 @@ export default function useGameLogic() {
         setAllCharacters([])
         setQuotes([])
         setTargetCharacter(null)
+        setActiveDayKey('')
       } else {
         const characters = Array.isArray(characterData) ? characterData : []
         const rawQuotes = Array.isArray(quoteData) ? quoteData : []
         setAllCharacters(characters)
         setQuotes(rawQuotes)
-        setTargetCharacter(await getCharacterOfDay(characters))
+
+        const { data: dailyPicks, error: dailyPickError } = await supabase
+          .from('daily_picks')
+          .select('day,payload')
+          .eq('mode', 'character')
+          .order('day', { ascending: false })
+          .limit(1)
+
+        if (dailyPickError) {
+          setError(dailyPickError.message || 'Failed to load daily pick')
+          setTargetCharacter(null)
+          setActiveDayKey('')
+        } else {
+          const pick = dailyPicks?.[0] || null
+          if (!pick?.payload) {
+            setError('Daily pick not ready yet')
+            setTargetCharacter(null)
+            setActiveDayKey('')
+          } else {
+            setActiveDayKey(String(pick.day))
+            setTargetCharacter(pick.payload)
+          }
+        }
       }
 
       setLoading(false)

@@ -1,16 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
-import getQuoteOfDay from '../utils/quoteOfDay'
 
 const QUOTE_GUESSES_STORAGE_KEY = 'soulsdle:quote-guesses'
-
-const getTodayKey = () => {
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, '0')
-  const dd = String(today.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-}
 
 const readStoredState = (storageKey) => {
   try {
@@ -26,44 +17,40 @@ const readStoredState = (storageKey) => {
 }
 
 export default function useQuoteLogic() {
-  const todayKey = getTodayKey()
   const [allCharacters, setAllCharacters] = useState([])
   const [quotes, setQuotes] = useState([])
   const [targetQuote, setTargetQuote] = useState(null)
+  const [activeDayKey, setActiveDayKey] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lastGuessCorrect, setLastGuessCorrect] = useState(null)
   const [firstHintRevealed, setFirstHintRevealed] = useState(false)
   const [secondHintRevealed, setSecondHintRevealed] = useState(false)
 
-  const [guesses, setGuesses] = useState(() => {
-    const parsed = readStoredState(QUOTE_GUESSES_STORAGE_KEY)
-    if (!parsed || parsed.dateKey !== todayKey || !Array.isArray(parsed.guesses)) return []
-    return parsed.guesses
-  })
-
-  const [firstHintUnlocked, setFirstHintUnlocked] = useState(() => {
-    const parsed = readStoredState(QUOTE_GUESSES_STORAGE_KEY)
-    if (!parsed || parsed.dateKey !== todayKey) return false
-    return Boolean(parsed.firstHintUnlocked)
-  })
-
-  const [secondHintUnlocked, setSecondHintUnlocked] = useState(() => {
-    const parsed = readStoredState(QUOTE_GUESSES_STORAGE_KEY)
-    if (!parsed || parsed.dateKey !== todayKey) return false
-    return Boolean(parsed.secondHintUnlocked)
-  })
+  const [guesses, setGuesses] = useState([])
+  const [firstHintUnlocked, setFirstHintUnlocked] = useState(false)
+  const [secondHintUnlocked, setSecondHintUnlocked] = useState(false)
 
   useEffect(() => {
+    if (!activeDayKey) return
+
+    const parsed = readStoredState(QUOTE_GUESSES_STORAGE_KEY)
+    setGuesses(parsed?.dateKey === activeDayKey && Array.isArray(parsed.guesses) ? parsed.guesses : [])
+    setFirstHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.firstHintUnlocked) : false)
+    setSecondHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.secondHintUnlocked) : false)
+  }, [activeDayKey])
+
+  useEffect(() => {
+    if (!activeDayKey) return
     try {
       localStorage.setItem(
         QUOTE_GUESSES_STORAGE_KEY,
-        JSON.stringify({ dateKey: todayKey, guesses, firstHintUnlocked, secondHintUnlocked })
+        JSON.stringify({ dateKey: activeDayKey, guesses, firstHintUnlocked, secondHintUnlocked })
       )
     } catch {
       // Ignore storage errors (e.g. private mode or quota).
     }
-  }, [guesses, firstHintUnlocked, secondHintUnlocked, todayKey])
+  }, [activeDayKey, guesses, firstHintUnlocked, secondHintUnlocked])
 
   const resetGuesses = () => {
     setGuesses([])
@@ -89,12 +76,35 @@ export default function useQuoteLogic() {
         setAllCharacters([])
         setQuotes([])
         setTargetQuote(null)
+        setActiveDayKey('')
       } else {
         const characters = Array.isArray(characterData) ? characterData : []
         const rawQuotes = Array.isArray(quoteData) ? quoteData : []
         setAllCharacters(characters)
         setQuotes(rawQuotes)
-        setTargetQuote(await getQuoteOfDay(rawQuotes))
+
+        const { data: dailyPicks, error: dailyPickError } = await supabase
+          .from('daily_picks')
+          .select('day,payload')
+          .eq('mode', 'quote')
+          .order('day', { ascending: false })
+          .limit(1)
+
+        if (dailyPickError) {
+          setError(dailyPickError.message || 'Failed to load daily pick')
+          setTargetQuote(null)
+          setActiveDayKey('')
+        } else {
+          const pick = dailyPicks?.[0] || null
+          if (!pick?.payload) {
+            setError('Daily pick not ready yet')
+            setTargetQuote(null)
+            setActiveDayKey('')
+          } else {
+            setActiveDayKey(String(pick.day))
+            setTargetQuote(pick.payload)
+          }
+        }
       }
 
       setLoading(false)

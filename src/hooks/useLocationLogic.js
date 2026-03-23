@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
-import getDailyItem from '../utils/getDailyItem'
 
 const LOCATIONS_STORAGE_KEY = 'soulsdle:locationGuesses'
 
@@ -12,14 +11,6 @@ const normalizeLocationName = (value) => {
   const trimmed = String(value || '').trim()
   if (!trimmed) return ''
   return LOCATION_NAME_FIXES[trimmed.toLowerCase()] || trimmed
-}
-
-const getTodayKey = () => {
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, '0')
-  const dd = String(today.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
 }
 
 const readStoredState = (key) => {
@@ -35,27 +26,34 @@ const readStoredState = (key) => {
 }
 
 export default function useLocationLogic() {
-  const todayKey = getTodayKey()
   const [allLocations, setAllLocations] = useState([])
   const [targetLocation, setTargetLocation] = useState(null)
-  const [guesses, setGuesses] = useState(() => {
-    const stored = readStoredState(LOCATIONS_STORAGE_KEY)
-    if (!stored || stored.dateKey !== todayKey || !Array.isArray(stored.guesses)) return []
-    return stored.guesses.map(normalizeLocationName).filter(Boolean)
-  })
+  const [activeDayKey, setActiveDayKey] = useState('')
+  const [guesses, setGuesses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!activeDayKey) return
+    const stored = readStoredState(LOCATIONS_STORAGE_KEY)
+    setGuesses(
+      stored?.dateKey === activeDayKey && Array.isArray(stored.guesses)
+        ? stored.guesses.map(normalizeLocationName).filter(Boolean)
+        : []
+    )
+  }, [activeDayKey])
+
+  useEffect(() => {
+    if (!activeDayKey) return
     try {
       localStorage.setItem(
         LOCATIONS_STORAGE_KEY,
-        JSON.stringify({ dateKey: todayKey, guesses })
+        JSON.stringify({ dateKey: activeDayKey, guesses })
       )
     } catch {
       // ignore
     }
-  }, [guesses, todayKey])
+  }, [activeDayKey, guesses])
 
   useEffect(() => {
     let isMounted = true
@@ -83,14 +81,50 @@ export default function useLocationLogic() {
         .filter((location) => Boolean(location.name))
 
       setAllLocations(normalized)
-      if (normalized.length > 0) {
-        const selected = await getDailyItem(normalized)
-        if (isMounted) {
-          setTargetLocation(selected)
-        }
-      } else {
+      if (!normalized.length) {
         setTargetLocation(null)
+        setActiveDayKey('')
+        setLoading(false)
+        return
       }
+
+      const { data: dailyPicks, error: dailyPickError } = await supabase
+        .from('daily_picks')
+        .select('day,payload')
+        .eq('mode', 'location')
+        .order('day', { ascending: false })
+        .limit(1)
+
+      if (!isMounted) return
+
+      if (dailyPickError) {
+        setError(dailyPickError.message || 'Failed to load daily pick')
+        setTargetLocation(null)
+        setActiveDayKey('')
+        setLoading(false)
+        return
+      }
+
+      const pick = dailyPicks?.[0] || null
+      if (!pick?.payload) {
+        setError('Daily pick not ready yet')
+        setTargetLocation(null)
+        setActiveDayKey('')
+        setLoading(false)
+        return
+      }
+
+      setActiveDayKey(String(pick.day))
+
+      const payload = pick.payload
+      const payloadName = normalizeLocationName(
+        payload?.name || payload?.location_name || payload?.Location_Name || ''
+      ).toLowerCase()
+      const selected =
+        normalized.find((location) => location.name.toLowerCase() === payloadName) ||
+        { ...payload, name: normalizeLocationName(payload?.name || payload?.location_name || payload?.Location_Name) }
+
+      setTargetLocation(selected)
 
       setLoading(false)
     }
