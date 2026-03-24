@@ -90,7 +90,7 @@ export default function useLocationLogic() {
 
       const { data: dailyPicks, error: dailyPickError } = await supabase
         .from('daily_picks')
-        .select('day,payload')
+        .select('day,item_key,payload')
         .eq('mode', 'location')
         .order('day', { ascending: false })
         .limit(1)
@@ -106,7 +106,7 @@ export default function useLocationLogic() {
       }
 
       const pick = dailyPicks?.[0] || null
-      if (!pick?.payload) {
+      if (!pick) {
         setError('Daily pick not ready yet')
         setTargetLocation(null)
         setActiveDayKey('')
@@ -116,15 +116,28 @@ export default function useLocationLogic() {
 
       setActiveDayKey(String(pick.day))
 
+      const pickKey = String(pick.item_key || '').trim()
+      const byId = pickKey ? normalized.find((location) => String(location?.id) === pickKey) : null
+      const byName = !byId && pickKey
+        ? normalized.find((location) => location.name.toLowerCase() === normalizeLocationName(pickKey).toLowerCase())
+        : null
+
       const payload = pick.payload
       const payloadName = normalizeLocationName(
         payload?.name || payload?.location_name || payload?.Location_Name || ''
-      ).toLowerCase()
-      const selected =
-        normalized.find((location) => location.name.toLowerCase() === payloadName) ||
-        { ...payload, name: normalizeLocationName(payload?.name || payload?.location_name || payload?.Location_Name) }
+      )
+      const byPayload = !byId && !byName && payloadName
+        ? normalized.find((location) => location.name.toLowerCase() === payloadName.toLowerCase())
+        : null
 
-      setTargetLocation(selected)
+      const resolved =
+        byId ||
+        byName ||
+        byPayload ||
+        (payloadName ? { ...payload, name: payloadName } : null)
+
+      setTargetLocation(resolved)
+      setError(resolved ? null : 'Daily pick payload missing')
 
       setLoading(false)
     }

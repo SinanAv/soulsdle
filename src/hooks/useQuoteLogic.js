@@ -85,7 +85,7 @@ export default function useQuoteLogic() {
 
         const { data: dailyPicks, error: dailyPickError } = await supabase
           .from('daily_picks')
-          .select('day,payload')
+          .select('day,item_key,payload')
           .eq('mode', 'quote')
           .order('day', { ascending: false })
           .limit(1)
@@ -96,13 +96,18 @@ export default function useQuoteLogic() {
           setActiveDayKey('')
         } else {
           const pick = dailyPicks?.[0] || null
-          if (!pick?.payload) {
+          if (!pick) {
             setError('Daily pick not ready yet')
             setTargetQuote(null)
             setActiveDayKey('')
           } else {
             setActiveDayKey(String(pick.day))
-            setTargetQuote(pick.payload)
+            const byId = pick.item_key
+              ? rawQuotes.find((quote) => String(quote?.id) === String(pick.item_key))
+              : null
+            const resolved = byId || pick.payload || null
+            setTargetQuote(resolved)
+            setError(resolved ? null : 'Daily pick payload missing')
           }
         }
       }

@@ -114,7 +114,7 @@ export default function useGameLogic() {
 
         const { data: dailyPicks, error: dailyPickError } = await supabase
           .from('daily_picks')
-          .select('day,payload')
+          .select('day,item_key,payload')
           .eq('mode', 'character')
           .order('day', { ascending: false })
           .limit(1)
@@ -125,13 +125,18 @@ export default function useGameLogic() {
           setActiveDayKey('')
         } else {
           const pick = dailyPicks?.[0] || null
-          if (!pick?.payload) {
+          if (!pick) {
             setError('Daily pick not ready yet')
             setTargetCharacter(null)
             setActiveDayKey('')
           } else {
             setActiveDayKey(String(pick.day))
-            setTargetCharacter(pick.payload)
+            const byId = pick.item_key
+              ? characters.find((character) => String(character?.id) === String(pick.item_key))
+              : null
+            const resolved = byId || pick.payload || null
+            setTargetCharacter(resolved)
+            setError(resolved ? null : 'Daily pick payload missing')
           }
         }
       }
@@ -224,6 +229,7 @@ export default function useGameLogic() {
     addGuess,
     resetGuesses,
     targetCharacter,
+    dailyPickDay: activeDayKey,
     allCharacters,
     loading,
     error,

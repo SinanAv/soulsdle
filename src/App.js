@@ -3,6 +3,7 @@ import './styles/home.css'
 import './styles/game.css'
 import './styles/quotes.css'
 import { Link, Route, Routes } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import GuessInput from './components/game/GuessInput'
 import GameGrid from './components/game/GameGrid'
 import QuotesMode from './components/game/QuotesMode'
@@ -36,7 +37,9 @@ function CharacterMode() {
     addGuess,
     resetGuesses,
     targetCharacter,
+    dailyPickDay,
     allCharacters,
+    error,
     firstHintQuote,
     firstHintUnlocked,
     firstHintRevealed,
@@ -47,7 +50,14 @@ function CharacterMode() {
     locationHintValue
   } = useGameLogic()
 
-  console.log('character of the day:', targetCharacter)
+  const lastLogRef = useRef('')
+  useEffect(() => {
+    if (!dailyPickDay && !error) return
+    const key = `${dailyPickDay}|${targetCharacter?.id || ''}|${error || ''}`
+    if (key === lastLogRef.current) return
+    lastLogRef.current = key
+    console.log('character of the day:', dailyPickDay, targetCharacter, error)
+  }, [dailyPickDay, error, targetCharacter])
 
   const hintConfig = {
     quote: { unlocked: firstHintUnlocked, onClick: toggleFirstHint },
