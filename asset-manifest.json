@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/soulsdle/static/css/main.4607a3e7.css",
-    "main.js": "/soulsdle/static/js/main.1399fb0b.js",
+    "main.css": "/soulsdle/static/css/main.f7b46e66.css",
+    "main.js": "/soulsdle/static/js/main.91c04aae.js",
     "static/js/453.ab9c96c1.chunk.js": "/soulsdle/static/js/453.ab9c96c1.chunk.js",
     "static/media/Soulsdle_Background.jpg": "/soulsdle/static/media/Soulsdle_Background.3072ff99a92ec3a0b96f.jpg",
     "index.html": "/soulsdle/index.html",
-    "main.4607a3e7.css.map": "/soulsdle/static/css/main.4607a3e7.css.map",
-    "main.1399fb0b.js.map": "/soulsdle/static/js/main.1399fb0b.js.map",
+    "main.f7b46e66.css.map": "/soulsdle/static/css/main.f7b46e66.css.map",
+    "main.91c04aae.js.map": "/soulsdle/static/js/main.91c04aae.js.map",
     "453.ab9c96c1.chunk.js.map": "/soulsdle/static/js/453.ab9c96c1.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.4607a3e7.css",
-    "static/js/main.1399fb0b.js"
+    "static/css/main.f7b46e66.css",
+    "static/js/main.91c04aae.js"
   ]
 }
