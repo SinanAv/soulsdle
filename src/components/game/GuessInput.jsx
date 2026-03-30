@@ -40,7 +40,7 @@ export default function GuessInput({
     return suggestions
       .filter((name) => name.toLowerCase().includes(query))
       .filter((name) => !guessedNames.has(name.toLowerCase()))
-      .slice(0, 6)
+      .slice(0, 50)
   }, [input, suggestions, guessedNames])
 
   useEffect(() => {

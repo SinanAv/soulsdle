@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
 
-const GUESSES_STORAGE_KEY = 'soulsdle:guesses'
+const BOSS_GUESSES_STORAGE_KEY = 'soulsdle:boss-guesses'
 const CHARACTER_PROPERTIES = ['name', 'gender', 'game', 'occupation', 'species', 'location', 'damage_type', 'weapon_type', 'HP']
 
 const readStoredState = (storageKey) => {
@@ -51,7 +51,7 @@ const occupationIncludesBoss = (occupation) => {
   return String(occupation).toLowerCase().includes('boss')
 }
 
-export default function useGameLogic() {
+export default function useBossLogic() {
   const [allCharacters, setAllCharacters] = useState([])
   const [quotes, setQuotes] = useState([])
   const [targetCharacter, setTargetCharacter] = useState(null)
@@ -68,7 +68,7 @@ export default function useGameLogic() {
   useEffect(() => {
     if (!activeDayKey) return
 
-    const parsed = readStoredState(GUESSES_STORAGE_KEY)
+    const parsed = readStoredState(BOSS_GUESSES_STORAGE_KEY)
     setGuesses(parsed?.dateKey === activeDayKey && Array.isArray(parsed.guesses) ? parsed.guesses : [])
     setFirstHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.firstHintUnlocked) : false)
     setLocationHintUnlocked(
@@ -82,7 +82,7 @@ export default function useGameLogic() {
     if (!activeDayKey) return
     try {
       localStorage.setItem(
-        GUESSES_STORAGE_KEY,
+        BOSS_GUESSES_STORAGE_KEY,
         JSON.stringify({ dateKey: activeDayKey, guesses, firstHintUnlocked, locationHintUnlocked })
       )
     } catch {
@@ -116,7 +116,7 @@ export default function useGameLogic() {
         setActiveDayKey('')
       } else {
         const characters = Array.isArray(characterData) ? characterData : []
-        const filteredCharacters = characters.filter((character) => !occupationIncludesBoss(character?.occupation))
+        const filteredCharacters = characters.filter((character) => occupationIncludesBoss(character?.occupation))
         const rawQuotes = Array.isArray(quoteData) ? quoteData : []
         setAllCharacters(filteredCharacters)
         setQuotes(rawQuotes)
@@ -124,7 +124,7 @@ export default function useGameLogic() {
         const { data: dailyPicks, error: dailyPickError } = await supabase
           .from('daily_picks')
           .select('day,item_key,payload')
-          .eq('mode', 'character')
+          .eq('mode', 'boss')
           .order('day', { ascending: false })
           .limit(1)
 
@@ -145,9 +145,9 @@ export default function useGameLogic() {
               : null
             const resolved = byId || pick.payload || null
 
-            if (resolved && occupationIncludesBoss(resolved?.occupation)) {
+            if (resolved && !occupationIncludesBoss(resolved?.occupation)) {
               setTargetCharacter(null)
-              setError('Daily pick is a boss. Update the picker to exclude bosses for Character of the Day.')
+              setError('Daily pick is not a boss. Update the picker to only choose bosses for Boss of the Day.')
             } else {
               setTargetCharacter(resolved)
               setError(resolved ? null : 'Daily pick payload missing')

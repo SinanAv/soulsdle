@@ -105,6 +105,18 @@
   color: var(--bone-white);
 }
 
+.mode-status {
+  text-align: center;
+  margin: 0.75rem 0 0;
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.05rem;
+  color: var(--bone-white);
+}
+
+.mode-status.error {
+  color: var(--ember-gold);
+}
+
 .suggestion-list {
   position: absolute;
   top: 100%;

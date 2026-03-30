@@ -97,7 +97,7 @@ export default function useQuoteLogic() {
         } else {
           const pick = dailyPicks?.[0] || null
           if (!pick) {
-            setError('Daily pick not ready yet')
+            setError('waiting for daily pick to be ready')
             setTargetQuote(null)
             setActiveDayKey('')
           } else {
