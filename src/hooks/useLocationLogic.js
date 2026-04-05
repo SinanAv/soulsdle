@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabase'
+import { fetchLatestDailyPick } from '../utils/dailyPick'
+import { readStoredState, writeStoredState } from '../utils/storageState'
 
 const LOCATIONS_STORAGE_KEY = 'soulsdle:locationGuesses'
 
@@ -13,18 +15,6 @@ const normalizeLocationName = (value) => {
   return LOCATION_NAME_FIXES[trimmed.toLowerCase()] || trimmed
 }
 
-const readStoredState = (key) => {
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
-
 export default function useLocationLogic() {
   const [allLocations, setAllLocations] = useState([])
   const [targetLocation, setTargetLocation] = useState(null)
@@ -32,6 +22,7 @@ export default function useLocationLogic() {
   const [guesses, setGuesses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [gameClueRevealed, setGameClueRevealed] = useState(false)
 
   useEffect(() => {
     if (!activeDayKey) return
@@ -45,14 +36,7 @@ export default function useLocationLogic() {
 
   useEffect(() => {
     if (!activeDayKey) return
-    try {
-      localStorage.setItem(
-        LOCATIONS_STORAGE_KEY,
-        JSON.stringify({ dateKey: activeDayKey, guesses })
-      )
-    } catch {
-      // ignore
-    }
+    writeStoredState(LOCATIONS_STORAGE_KEY, { dateKey: activeDayKey, guesses })
   }, [activeDayKey, guesses])
 
   useEffect(() => {
@@ -76,7 +60,7 @@ export default function useLocationLogic() {
       const normalized = (Array.isArray(data) ? data : [])
         .map((location) => ({
           ...location,
-          name: normalizeLocationName(location?.location_name || location?.Location_Name || '')
+          name: normalizeLocationName(location?.location || '')
         }))
         .filter((location) => Boolean(location.name))
 
@@ -88,26 +72,11 @@ export default function useLocationLogic() {
         return
       }
 
-      const { data: dailyPicks, error: dailyPickError } = await supabase
-        .from('daily_picks')
-        .select('day,item_key,payload')
-        .eq('mode', 'location')
-        .order('day', { ascending: false })
-        .limit(1)
-
+      const { pick, error: pickError } = await fetchLatestDailyPick('location')
       if (!isMounted) return
 
-      if (dailyPickError) {
-        setError(dailyPickError.message || 'Failed to load daily pick')
-        setTargetLocation(null)
-        setActiveDayKey('')
-        setLoading(false)
-        return
-      }
-
-      const pick = dailyPicks?.[0] || null
-      if (!pick) {
-        setError('waiting for daily pick to be ready')
+      if (pickError) {
+        setError(pickError)
         setTargetLocation(null)
         setActiveDayKey('')
         setLoading(false)
@@ -124,7 +93,7 @@ export default function useLocationLogic() {
 
       const payload = pick.payload
       const payloadName = normalizeLocationName(
-        payload?.name || payload?.location_name || payload?.Location_Name || ''
+        payload?.location || ''
       )
       const byPayload = !byId && !byName && payloadName
         ? normalized.find((location) => location.name.toLowerCase() === payloadName.toLowerCase())
@@ -172,6 +141,18 @@ export default function useLocationLogic() {
       guesses.some((name) => name.toLowerCase() === targetLocation.name.toLowerCase())
   )
 
+  const wrongGuessesToday = targetLocation
+    ? guesses.filter((name) => String(name || '').toLowerCase() !== String(targetLocation?.name || '').toLowerCase()).length
+    : 0
+  const gameClueUnlocked = wrongGuessesToday >= 1
+
+  const toggleGameClue = () => {
+    if (!gameClueUnlocked) return
+    setGameClueRevealed((prev) => !prev)
+  }
+
+  const gameClueValue = targetLocation?.game || null
+
   return {
     allLocations,
     targetLocation,
@@ -180,6 +161,10 @@ export default function useLocationLogic() {
     resetGuesses,
     loading,
     error,
-    isSolved
+    isSolved,
+    gameClueUnlocked,
+    gameClueRevealed,
+    toggleGameClue,
+    gameClueValue
   }
 }

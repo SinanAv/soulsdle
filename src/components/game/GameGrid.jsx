@@ -1,10 +1,9 @@
-import { supabase } from '../../services/supabase'
+import getStoragePublicUrl from '../../utils/getStoragePublicUrl'
 
 const PROPERTIES = ['name', 'gender', 'game', 'occupation', 'species', 'location', 'damage_type', 'weapon_type', 'HP']
 
 const getCharacterImageUrl = (name) => {
-  if (!name) return ''
-  return supabase.storage.from('imagesofcharacters').getPublicUrl(`${name}.jpg`).data.publicUrl
+  return getStoragePublicUrl('imagesofcharacters', name)
 }
 
 const getHpDisplayValue = (value, targetCharacter) => {
@@ -36,7 +35,7 @@ export default function GameGrid({ guesses, targetCharacter }) {
           <tr key={guessObj?.character?.id || i}>
             {PROPERTIES.map((property, propertyIndex) => {
               const value = guessObj.character[property]
-              const bg = guessObj.hints[property]
+              const bg = guessObj?.clues?.[property]
               const textColor = bg === 'yellow' ? '#000' : undefined
 
               let displayValue = value

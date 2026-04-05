@@ -54,6 +54,7 @@ export default function GuessInput({
   }, [input, filteredSuggestions])
 
   useEffect(() => {
+    if (!showSuggestionImages) return
     if (!allCharacters.length) return
 
     getUniqueNames(allCharacters).forEach((name) => {
@@ -63,7 +64,7 @@ export default function GuessInput({
       const img = new Image()
       img.src = url
     })
-  }, [allCharacters])
+  }, [allCharacters, showSuggestionImages])
 
   const submitGuess = (value) => {
     if (!value.trim()) return

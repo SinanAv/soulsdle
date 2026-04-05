@@ -56,6 +56,10 @@ export default function LocationMode() {
     resetGuesses,
     loading,
     error,
+    gameClueUnlocked,
+    gameClueRevealed,
+    toggleGameClue,
+    gameClueValue
   } = useLocationLogic()
 
   const formattedGuesses = guesses.map((name) => ({ character: { name } }))
@@ -115,12 +119,6 @@ export default function LocationMode() {
     }
   }, [webpUrl, jpgUrl])
 
-  useEffect(() => {
-    if (targetLocation?.name) {
-      console.log('location of the day is', JSON.stringify(targetLocation.name))
-    }
-  }, [targetLocation])
-
   const isSolved = Boolean(
     targetLocation &&
       guesses.some((name) => name.toLowerCase() === targetLocation.name.toLowerCase())
@@ -144,7 +142,7 @@ export default function LocationMode() {
   }, [revealOrder, revealCount])
 
   return (
-    <div className="quotes-mode location-mode">
+    <div className="location-mode">
       <div className="mode-header">
         <Link className="back-button" to="/">Back</Link>
         <h2>Location Mode</h2>
@@ -198,11 +196,22 @@ export default function LocationMode() {
         />
       </div>
 
-      <div className="hint-panel">
-        <div className="hint-results">
-          <p className="hint-placeholder">
-            Placeholder for future hints
-          </p>
+      <div className="clue-panel">
+        <div className="clue-button-row">
+          <button
+            type="button"
+            className="clue-button"
+            onClick={toggleGameClue}
+            disabled={!gameClueUnlocked}
+          >
+            Game Clue
+          </button>
+        </div>
+
+        <div className="clue-results">
+          {gameClueRevealed && (
+            <p className="clue-placeholder">{gameClueValue || 'No game clue available.'}</p>
+          )}
         </div>
       </div>
 

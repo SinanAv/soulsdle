@@ -1,261 +1,58 @@
-import { useEffect, useMemo, useState } from 'react'
-import { supabase } from '../services/supabase'
+import { useMemo, useState } from 'react'
+import useCharacterModeLogic from './useCharacterModeLogic'
 
-const BOSS_GUESSES_STORAGE_KEY = 'soulsdle:boss-guesses'
-const CHARACTER_PROPERTIES = ['name', 'gender', 'game', 'occupation', 'species', 'location', 'damage_type', 'weapon_type', 'HP']
-
-const readStoredState = (storageKey) => {
-  try {
-    const raw = localStorage.getItem(storageKey)
-    if (!raw) return null
-
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
-
-const toValueSet = (value) => {
-  if (value == null) return new Set()
-
-  if (Array.isArray(value)) {
-    return new Set(value.map((item) => String(item).trim().toLowerCase()).filter(Boolean))
-  }
-
-  if (typeof value === 'number') return new Set([String(value)])
-
-  const normalized = String(value)
-    .toLowerCase()
-    .replace(/\s+and\s+/g, ',')
-    .replace(/[/&]/g, ',')
-
-  return new Set(
-    normalized
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-  )
-}
-
-const isNameMatch = (left, right) => {
-  return String(left).toLowerCase() === String(right).toLowerCase()
-}
-
-const occupationIncludesBoss = (occupation) => {
-  if (occupation == null) return false
-  if (Array.isArray(occupation)) {
-    return occupation.some((value) => String(value).toLowerCase().includes('boss'))
-  }
-  return String(occupation).toLowerCase().includes('boss')
-}
+const BOSS_GUESSES_STORAGE_KEY = 'soulsdle:bossGuesses'
 
 export default function useBossLogic() {
-  const [allCharacters, setAllCharacters] = useState([])
-  const [quotes, setQuotes] = useState([])
-  const [targetCharacter, setTargetCharacter] = useState(null)
-  const [activeDayKey, setActiveDayKey] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [firstHintRevealed, setFirstHintRevealed] = useState(false)
-  const [locationHintRevealed, setLocationHintRevealed] = useState(false)
+  const base = useCharacterModeLogic({
+    mode: 'boss',
+    storageKey: BOSS_GUESSES_STORAGE_KEY,
+    includeBosses: true,
+    invalidPickMessage: 'Daily pick is not a boss. Update the picker to only choose bosses for Boss of the Day.'
+  })
 
-  const [guesses, setGuesses] = useState([])
-  const [firstHintUnlocked, setFirstHintUnlocked] = useState(false)
-  const [locationHintUnlocked, setLocationHintUnlocked] = useState(false)
+  const { guesses, targetCharacter } = base
 
-  useEffect(() => {
-    if (!activeDayKey) return
+  const [firstClueRevealed, setFirstClueRevealed] = useState(false)
+  const [locationClueRevealed, setLocationClueRevealed] = useState(false)
 
-    const parsed = readStoredState(BOSS_GUESSES_STORAGE_KEY)
-    setGuesses(parsed?.dateKey === activeDayKey && Array.isArray(parsed.guesses) ? parsed.guesses : [])
-    setFirstHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.firstHintUnlocked) : false)
-    setLocationHintUnlocked(
-      parsed?.dateKey === activeDayKey
-        ? Boolean(parsed.locationHintUnlocked || parsed.nameLengthHintUnlocked)
-        : false
-    )
-  }, [activeDayKey])
+  const wrongGuessesToday = useMemo(() => {
+    if (!targetCharacter) return 0
+    const targetName = String(targetCharacter?.name || '').toLowerCase()
+    if (!targetName) return 0
 
-  useEffect(() => {
-    if (!activeDayKey) return
-    try {
-      localStorage.setItem(
-        BOSS_GUESSES_STORAGE_KEY,
-        JSON.stringify({ dateKey: activeDayKey, guesses, firstHintUnlocked, locationHintUnlocked })
-      )
-    } catch {
-      // Ignore storage errors.
-    }
-  }, [activeDayKey, guesses, firstHintUnlocked, locationHintUnlocked])
+    return guesses.filter((guess) => String(guess?.character?.name || '').toLowerCase() !== targetName).length
+  }, [guesses, targetCharacter])
 
-  const resetGuesses = () => {
-    setGuesses([])
-  }
+  const firstClueUnlocked = wrongGuessesToday >= 1
+  const locationClueUnlocked = wrongGuessesToday >= 3
 
-  useEffect(() => {
-    let isMounted = true
-
-    const loadData = async () => {
-      setLoading(true)
-      setError(null)
-
-      const [{ data: characterData, error: characterError }, { data: quoteData, error: quoteError }] = await Promise.all([
-        supabase.from('soulsdle').select('*'),
-        supabase.from('quotes').select('*')
-      ])
-
-      if (!isMounted) return
-
-      if (characterError || quoteError) {
-        setError(characterError?.message || quoteError?.message || 'Failed to load data')
-        setAllCharacters([])
-        setQuotes([])
-        setTargetCharacter(null)
-        setActiveDayKey('')
-      } else {
-        const characters = Array.isArray(characterData) ? characterData : []
-        const filteredCharacters = characters.filter((character) => occupationIncludesBoss(character?.occupation))
-        const rawQuotes = Array.isArray(quoteData) ? quoteData : []
-        setAllCharacters(filteredCharacters)
-        setQuotes(rawQuotes)
-
-        const { data: dailyPicks, error: dailyPickError } = await supabase
-          .from('daily_picks')
-          .select('day,item_key,payload')
-          .eq('mode', 'boss')
-          .order('day', { ascending: false })
-          .limit(1)
-
-        if (dailyPickError) {
-          setError(dailyPickError.message || 'Failed to load daily pick')
-          setTargetCharacter(null)
-          setActiveDayKey('')
-        } else {
-          const pick = dailyPicks?.[0] || null
-          if (!pick) {
-            setError('waiting for daily pick to be ready')
-            setTargetCharacter(null)
-            setActiveDayKey('')
-          } else {
-            setActiveDayKey(String(pick.day))
-            const byId = pick.item_key
-              ? filteredCharacters.find((character) => String(character?.id) === String(pick.item_key))
-              : null
-            const resolved = byId || pick.payload || null
-
-            if (resolved && !occupationIncludesBoss(resolved?.occupation)) {
-              setTargetCharacter(null)
-              setError('Daily pick is not a boss. Update the picker to only choose bosses for Boss of the Day.')
-            } else {
-              setTargetCharacter(resolved)
-              setError(resolved ? null : 'Daily pick payload missing')
-            }
-          }
-        }
-      }
-
-      setLoading(false)
-    }
-
-    loadData()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  const firstHintQuote = useMemo(() => {
+  const firstClueQuote = useMemo(() => {
     if (!targetCharacter) return null
+    return targetCharacter.game || null
+  }, [targetCharacter])
 
-    const characterQuotes = quotes.filter(
-      (quote) => String(quote?.character_id) === String(targetCharacter?.id) && quote?.quote
-    )
-
-    if (characterQuotes.length === 0) return null
-    return characterQuotes[0]?.quote || null
-  }, [quotes, targetCharacter])
-
-  const addGuess = (guessName) => {
-    if (!guessName.trim()) return
-    if (!targetCharacter) return
-
-    const guessedCharacter = allCharacters.find(
-      (character) => character.name.toLowerCase() === guessName.toLowerCase()
-    )
-    if (!guessedCharacter) return
-
-    const hints = {}
-    CHARACTER_PROPERTIES.forEach((property) => {
-      if (guessedCharacter[property] === targetCharacter[property]) {
-        hints[property] = 'green'
-        return
-      }
-
-      const isNumber = typeof guessedCharacter[property] === 'number' || typeof targetCharacter[property] === 'number'
-      if (isNumber) {
-        hints[property] = 'red'
-        return
-      }
-
-      const guessSet = toValueSet(guessedCharacter[property])
-      const targetSet = toValueSet(targetCharacter[property])
-      const hasOverlap = [...guessSet].some((value) => targetSet.has(value))
-      hints[property] = hasOverlap ? 'yellow' : 'red'
-    })
-
-    setGuesses((prev) => [...prev, { character: guessedCharacter, hints }])
-
-    const guessedCorrectly = isNameMatch(guessedCharacter?.name, targetCharacter?.name)
-    if (!guessedCorrectly && !firstHintUnlocked) {
-      setFirstHintUnlocked(true)
-    }
-
-    if (!guessedCorrectly) {
-      const wrongGuessesToday = guesses.filter(
-        (guess) => !isNameMatch(guess?.character?.name, targetCharacter?.name)
-      ).length + 1
-
-      if (wrongGuessesToday >= 3 && !locationHintUnlocked) {
-        setLocationHintUnlocked(true)
-      }
-    }
+  const toggleFirstClue = () => {
+    if (!firstClueUnlocked) return
+    setFirstClueRevealed((prev) => !prev)
   }
 
-  const toggleFirstHint = () => {
-    if (!firstHintUnlocked) return
-    setFirstHintRevealed((prev) => !prev)
+  const toggleLocationClue = () => {
+    if (!locationClueUnlocked) return
+    setLocationClueRevealed((prev) => !prev)
   }
 
-  const toggleLocationHint = () => {
-    if (!locationHintUnlocked) return
-    setLocationHintRevealed((prev) => !prev)
-  }
-
-  const locationHintValue = targetCharacter?.location || null
-
-  const isSolved = Boolean(
-    targetCharacter && guesses.some((guess) => isNameMatch(guess?.character?.name, targetCharacter?.name))
-  )
+  const locationClueValue = targetCharacter?.location || null
 
   return {
-    guesses,
-    addGuess,
-    resetGuesses,
-    targetCharacter,
-    dailyPickDay: activeDayKey,
-    allCharacters,
-    loading,
-    error,
-    isSolved,
-    firstHintQuote,
-    firstHintUnlocked,
-    firstHintRevealed,
-    toggleFirstHint,
-    locationHintUnlocked,
-    locationHintRevealed,
-    toggleLocationHint,
-    locationHintValue
+    ...base,
+    firstClueQuote,
+    firstClueUnlocked,
+    firstClueRevealed,
+    toggleFirstClue,
+    locationClueUnlocked,
+    locationClueRevealed,
+    toggleLocationClue,
+    locationClueValue
   }
 }

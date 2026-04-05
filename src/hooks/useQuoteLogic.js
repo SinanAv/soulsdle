@@ -1,56 +1,38 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabase'
+import { fetchLatestDailyPick } from '../utils/dailyPick'
+import { readStoredState, writeStoredState } from '../utils/storageState'
 
-const QUOTE_GUESSES_STORAGE_KEY = 'soulsdle:quote-guesses'
-
-const readStoredState = (storageKey) => {
-  try {
-    const raw = localStorage.getItem(storageKey)
-    if (!raw) return null
-
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
+const QUOTE_GUESSES_STORAGE_KEY = 'soulsdle:quoteGuesses'
 
 export default function useQuoteLogic() {
   const [allCharacters, setAllCharacters] = useState([])
-  const [quotes, setQuotes] = useState([])
   const [targetQuote, setTargetQuote] = useState(null)
   const [activeDayKey, setActiveDayKey] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lastGuessCorrect, setLastGuessCorrect] = useState(null)
-  const [firstHintRevealed, setFirstHintRevealed] = useState(false)
-  const [secondHintRevealed, setSecondHintRevealed] = useState(false)
+  const [firstClueRevealed, setFirstClueRevealed] = useState(false)
+  const [secondClueRevealed, setSecondClueRevealed] = useState(false)
 
   const [guesses, setGuesses] = useState([])
-  const [firstHintUnlocked, setFirstHintUnlocked] = useState(false)
-  const [secondHintUnlocked, setSecondHintUnlocked] = useState(false)
+  const [firstClueUnlocked, setFirstClueUnlocked] = useState(false)
+  const [secondClueUnlocked, setSecondClueUnlocked] = useState(false)
 
   useEffect(() => {
     if (!activeDayKey) return
 
     const parsed = readStoredState(QUOTE_GUESSES_STORAGE_KEY)
-    setGuesses(parsed?.dateKey === activeDayKey && Array.isArray(parsed.guesses) ? parsed.guesses : [])
-    setFirstHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.firstHintUnlocked) : false)
-    setSecondHintUnlocked(parsed?.dateKey === activeDayKey ? Boolean(parsed.secondHintUnlocked) : false)
+    const isSameDay = parsed?.dateKey === activeDayKey
+    setGuesses(isSameDay && Array.isArray(parsed.guesses) ? parsed.guesses : [])
+    setFirstClueUnlocked(isSameDay ? Boolean(parsed.firstClueUnlocked) : false)
+    setSecondClueUnlocked(isSameDay ? Boolean(parsed.secondClueUnlocked) : false)
   }, [activeDayKey])
 
   useEffect(() => {
     if (!activeDayKey) return
-    try {
-      localStorage.setItem(
-        QUOTE_GUESSES_STORAGE_KEY,
-        JSON.stringify({ dateKey: activeDayKey, guesses, firstHintUnlocked, secondHintUnlocked })
-      )
-    } catch {
-      // Ignore storage errors (e.g. private mode or quota).
-    }
-  }, [activeDayKey, guesses, firstHintUnlocked, secondHintUnlocked])
+    writeStoredState(QUOTE_GUESSES_STORAGE_KEY, { dateKey: activeDayKey, guesses, firstClueUnlocked, secondClueUnlocked })
+  }, [activeDayKey, guesses, firstClueUnlocked, secondClueUnlocked])
 
   const resetGuesses = () => {
     setGuesses([])
@@ -74,41 +56,27 @@ export default function useQuoteLogic() {
       if (characterError || quoteError) {
         setError(characterError?.message || quoteError?.message || 'Failed to load data')
         setAllCharacters([])
-        setQuotes([])
         setTargetQuote(null)
         setActiveDayKey('')
       } else {
         const characters = Array.isArray(characterData) ? characterData : []
         const rawQuotes = Array.isArray(quoteData) ? quoteData : []
         setAllCharacters(characters)
-        setQuotes(rawQuotes)
 
-        const { data: dailyPicks, error: dailyPickError } = await supabase
-          .from('daily_picks')
-          .select('day,item_key,payload')
-          .eq('mode', 'quote')
-          .order('day', { ascending: false })
-          .limit(1)
+        const { pick, error: pickError } = await fetchLatestDailyPick('quote')
 
-        if (dailyPickError) {
-          setError(dailyPickError.message || 'Failed to load daily pick')
+        if (pickError) {
+          setError(pickError)
           setTargetQuote(null)
           setActiveDayKey('')
         } else {
-          const pick = dailyPicks?.[0] || null
-          if (!pick) {
-            setError('waiting for daily pick to be ready')
-            setTargetQuote(null)
-            setActiveDayKey('')
-          } else {
-            setActiveDayKey(String(pick.day))
-            const byId = pick.item_key
-              ? rawQuotes.find((quote) => String(quote?.id) === String(pick.item_key))
-              : null
-            const resolved = byId || pick.payload || null
-            setTargetQuote(resolved)
-            setError(resolved ? null : 'Daily pick payload missing')
-          }
+          setActiveDayKey(String(pick.day))
+          const byId = pick.item_key
+            ? rawQuotes.find((quote) => String(quote?.id) === String(pick.item_key))
+            : null
+          const resolved = byId || pick.payload || null
+          setTargetQuote(resolved)
+          setError(resolved ? null : 'Daily pick payload missing')
         }
       }
 
@@ -144,8 +112,8 @@ export default function useQuoteLogic() {
     setLastGuessCorrect(isCorrect)
     setGuesses((prev) => [...prev, { character: guessedCharacter }])
 
-    if (!isCorrect && !firstHintUnlocked) {
-      setFirstHintUnlocked(true)
+    if (!isCorrect && !firstClueUnlocked) {
+      setFirstClueUnlocked(true)
     }
 
     if (!isCorrect) {
@@ -153,41 +121,30 @@ export default function useQuoteLogic() {
         (guess) => String(guess?.character?.id) !== String(targetCharacter?.id)
       ).length + 1
 
-      if (wrongGuessesToday >= 3 && !secondHintUnlocked) {
-        setSecondHintUnlocked(true)
+      if (wrongGuessesToday >= 3 && !secondClueUnlocked) {
+        setSecondClueUnlocked(true)
       }
     }
   }
 
-  const hintQuotes = useMemo(() => {
-    if (!targetCharacter || quotes.length === 0) return []
+  const firstClueQuote = useMemo(() => {
+    if (!targetCharacter) return null
+    return targetCharacter.game || null
+  }, [targetCharacter])
 
-    const targetQuoteText = String(targetQuote?.quote || '').trim().toLowerCase()
-    const seen = new Set()
+  const secondClueQuote = useMemo(() => {
+    if (!targetCharacter) return null
+    return targetCharacter.location || null
+  }, [targetCharacter])
 
-    return quotes
-      .filter((quote) => String(quote?.character_id) === String(targetCharacter?.id) && quote?.quote)
-      .map((quote) => String(quote.quote).trim())
-      .filter((quoteText) => {
-        const normalized = quoteText.toLowerCase()
-        if (!normalized || normalized === targetQuoteText || seen.has(normalized)) return false
-
-        seen.add(normalized)
-        return true
-      })
-  }, [quotes, targetCharacter, targetQuote])
-
-  const firstHintQuote = hintQuotes[0] || null
-  const secondHintQuote = hintQuotes[1] || null
-
-  const toggleFirstHint = () => {
-    if (!firstHintUnlocked) return
-    setFirstHintRevealed((prev) => !prev)
+  const toggleFirstClue = () => {
+    if (!firstClueUnlocked) return
+    setFirstClueRevealed((prev) => !prev)
   }
 
-  const toggleSecondHint = () => {
-    if (!secondHintUnlocked) return
-    setSecondHintRevealed((prev) => !prev)
+  const toggleSecondClue = () => {
+    if (!secondClueUnlocked) return
+    setSecondClueRevealed((prev) => !prev)
   }
 
   const isSolved = Boolean(
@@ -205,13 +162,13 @@ export default function useQuoteLogic() {
     error,
     isSolved,
     lastGuessCorrect,
-    firstHintUnlocked,
-    firstHintRevealed,
-    firstHintQuote,
-    toggleFirstHint,
-    secondHintUnlocked,
-    secondHintRevealed,
-    secondHintQuote,
-    toggleSecondHint
+    firstClueUnlocked,
+    firstClueRevealed,
+    firstClueQuote,
+    toggleFirstClue,
+    secondClueUnlocked,
+    secondClueRevealed,
+    secondClueQuote,
+    toggleSecondClue
   }
 }

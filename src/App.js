@@ -3,7 +3,6 @@ import './styles/home.css'
 import './styles/game.css'
 import './styles/quotes.css'
 import { Link, Route, Routes } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
 import GuessInput from './components/game/GuessInput'
 import GameGrid from './components/game/GameGrid'
 import QuotesMode from './components/game/QuotesMode'
@@ -16,11 +15,6 @@ const HOME_MODES = [
   { to: '/character', label: 'NPC Of The Day' },
   { to: '/quotes', label: 'Quotes' },
   { to: '/locations', label: 'Location Splash' }
-]
-
-const CHARACTER_HINT_BUTTONS = [
-  { key: 'quote', label: 'Quote Clue' },
-  { key: 'location', label: 'Location Hint' }
 ]
 
 function Home() {
@@ -39,33 +33,28 @@ function CharacterMode() {
     addGuess,
     resetGuesses,
     targetCharacter,
-    dailyPickDay,
     allCharacters,
     loading,
     error,
     isSolved,
-    firstHintQuote,
-    firstHintUnlocked,
-    firstHintRevealed,
-    toggleFirstHint,
-    locationHintUnlocked,
-    locationHintRevealed,
-    toggleLocationHint,
-    locationHintValue
+    firstClueQuote,
+    firstClueUnlocked,
+    firstClueRevealed,
+    toggleFirstClue,
+    locationClueUnlocked,
+    locationClueRevealed,
+    toggleLocationClue,
+    locationClueValue
   } = useGameLogic()
 
-  const lastLogRef = useRef('')
-  useEffect(() => {
-    if (!dailyPickDay && !error) return
-    const key = `${dailyPickDay}|${targetCharacter?.id || ''}|${error || ''}`
-    if (key === lastLogRef.current) return
-    lastLogRef.current = key
-    console.log('character of the day (non-boss):', dailyPickDay, targetCharacter, error)
-  }, [dailyPickDay, error, targetCharacter])
+  const clueButtons = [
+    { key: 'quote', label: 'Quote Clue' },
+    { key: 'location', label: 'Location Clue' }
+  ]
 
-  const hintConfig = {
-    quote: { unlocked: firstHintUnlocked, onClick: toggleFirstHint },
-    location: { unlocked: locationHintUnlocked, onClick: toggleLocationHint }
+  const clueConfig = {
+    quote: { unlocked: firstClueUnlocked, onClick: toggleFirstClue },
+    location: { unlocked: locationClueUnlocked, onClick: toggleLocationClue }
   }
 
   return (
@@ -86,27 +75,27 @@ function CharacterMode() {
         guesses={guesses}
       />
 
-      <div className="hint-panel">
-        <div className="hint-button-row">
-          {CHARACTER_HINT_BUTTONS.map(({ key, label }) => (
+        <div className="clue-panel">
+          <div className="clue-button-row">
+          {clueButtons.map(({ key, label }) => (
             <button
               key={key}
               type="button"
-              className="hint-button"
-              onClick={hintConfig[key].onClick}
-              disabled={!hintConfig[key].unlocked}
+              className="clue-button"
+              onClick={clueConfig[key].onClick}
+              disabled={!clueConfig[key].unlocked}
             >
               {label}
             </button>
           ))}
         </div>
 
-        <div className="hint-results">
-          {firstHintRevealed && (
-            <p className="hint-placeholder">{firstHintQuote || 'No quote hint available.'}</p>
+        <div className="clue-results">
+          {firstClueRevealed && (
+            <p className="clue-placeholder">{firstClueQuote || 'No quote clue available.'}</p>
           )}
-          {locationHintRevealed && (
-            <p className="hint-placeholder">{locationHintValue || 'No location hint available.'}</p>
+          {locationClueRevealed && (
+            <p className="clue-placeholder">{locationClueValue || 'No location clue available.'}</p>
           )}
         </div>
       </div>
@@ -122,33 +111,28 @@ function BossMode() {
     addGuess,
     resetGuesses,
     targetCharacter,
-    dailyPickDay,
     allCharacters,
     loading,
     error,
     isSolved,
-    firstHintQuote,
-    firstHintUnlocked,
-    firstHintRevealed,
-    toggleFirstHint,
-    locationHintUnlocked,
-    locationHintRevealed,
-    toggleLocationHint,
-    locationHintValue
+    firstClueQuote,
+    firstClueUnlocked,
+    firstClueRevealed,
+    toggleFirstClue,
+    locationClueUnlocked,
+    locationClueRevealed,
+    toggleLocationClue,
+    locationClueValue
   } = useBossLogic()
 
-  const lastLogRef = useRef('')
-  useEffect(() => {
-    if (!dailyPickDay && !error) return
-    const key = `${dailyPickDay}|${targetCharacter?.id || ''}|${error || ''}`
-    if (key === lastLogRef.current) return
-    lastLogRef.current = key
-    console.log('boss of the day:', dailyPickDay, targetCharacter, error)
-  }, [dailyPickDay, error, targetCharacter])
+  const clueButtons = [
+    { key: 'quote', label: 'Game Clue' },
+    { key: 'location', label: 'Location Clue' }
+  ]
 
-  const hintConfig = {
-    quote: { unlocked: firstHintUnlocked, onClick: toggleFirstHint },
-    location: { unlocked: locationHintUnlocked, onClick: toggleLocationHint }
+  const clueConfig = {
+    quote: { unlocked: firstClueUnlocked, onClick: toggleFirstClue },
+    location: { unlocked: locationClueUnlocked, onClick: toggleLocationClue }
   }
 
   return (
@@ -169,27 +153,27 @@ function BossMode() {
         guesses={guesses}
       />
 
-      <div className="hint-panel">
-        <div className="hint-button-row">
-          {CHARACTER_HINT_BUTTONS.map(({ key, label }) => (
+        <div className="clue-panel">
+          <div className="clue-button-row">
+          {clueButtons.map(({ key, label }) => (
             <button
               key={key}
               type="button"
-              className="hint-button"
-              onClick={hintConfig[key].onClick}
-              disabled={!hintConfig[key].unlocked}
+              className="clue-button"
+              onClick={clueConfig[key].onClick}
+              disabled={!clueConfig[key].unlocked}
             >
               {label}
             </button>
           ))}
         </div>
 
-        <div className="hint-results">
-          {firstHintRevealed && (
-            <p className="hint-placeholder">{firstHintQuote || 'No quote hint available.'}</p>
+        <div className="clue-results">
+          {firstClueRevealed && (
+            <p className="clue-placeholder">{firstClueQuote || 'No quote clue available.'}</p>
           )}
-          {locationHintRevealed && (
-            <p className="hint-placeholder">{locationHintValue || 'No location hint available.'}</p>
+          {locationClueRevealed && (
+            <p className="clue-placeholder">{locationClueValue || 'No location clue available.'}</p>
           )}
         </div>
       </div>

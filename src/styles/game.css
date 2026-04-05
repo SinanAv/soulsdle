@@ -51,7 +51,7 @@
   box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
 }
 
-.hint-panel {
+.clue-panel {
   margin-top: 16px;
   display: flex;
   flex-direction: column;
@@ -59,7 +59,7 @@
   gap: 10px;
 }
 
-.hint-button-row {
+.clue-button-row {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,11 +67,11 @@
   flex-wrap: wrap;
 }
 
-.hint-results {
+.clue-results {
   width: 100%;
 }
 
-.hint-button {
+.clue-button {
   height: 44px;
   padding: 0 18px;
   font-size: 0.9rem;
@@ -87,17 +87,17 @@
   font-weight: 600;
 }
 
-.hint-button:hover:not(:disabled) {
+.clue-button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 5px 20px rgba(255, 107, 53, 0.35);
 }
 
-.hint-button:disabled {
+.clue-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
-.hint-placeholder {
+.clue-placeholder {
   text-align: center;
   margin: 0;
   font-family: 'Crimson Pro', serif;

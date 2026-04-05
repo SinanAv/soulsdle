@@ -1,16 +1,15 @@
 import GuessInput from './GuessInput'
-import { supabase } from '../../services/supabase'
 import useQuoteLogic from '../../hooks/useQuoteLogic'
 import { Link } from 'react-router-dom'
+import getStoragePublicUrl from '../../utils/getStoragePublicUrl'
 
-const HINT_BUTTONS = [
-  { key: 'first', label: 'Quote Hint' },
-  { key: 'second', label: 'Quote Hint 2' }
+const CLUE_BUTTONS = [
+  { key: 'first', label: 'Game Clue' },
+  { key: 'second', label: 'Location Clue' }
 ]
 
 const getCharacterImageUrl = (name) => {
-  if (!name) return ''
-  return supabase.storage.from('imagesofcharacters').getPublicUrl(`${name}.jpg`).data.publicUrl
+  return getStoragePublicUrl('imagesofcharacters', name)
 }
 
 export default function QuotesMode() {
@@ -21,21 +20,21 @@ export default function QuotesMode() {
     targetQuote,
     targetCharacter,
     allCharacters,
-    firstHintUnlocked,
-    firstHintRevealed,
-    firstHintQuote,
-    toggleFirstHint,
-    secondHintUnlocked,
-    secondHintRevealed,
-    secondHintQuote,
-    toggleSecondHint
+    firstClueUnlocked,
+    firstClueRevealed,
+    firstClueQuote,
+    toggleFirstClue,
+    secondClueUnlocked,
+    secondClueRevealed,
+    secondClueQuote,
+    toggleSecondClue
   } = useQuoteLogic()
 
   const quoteText = targetQuote?.quote || 'Loading quote...'
   const displayGuesses = [...guesses].reverse()
-  const hintConfig = {
-    first: { unlocked: firstHintUnlocked, onClick: toggleFirstHint },
-    second: { unlocked: secondHintUnlocked, onClick: toggleSecondHint }
+  const clueConfig = {
+    first: { unlocked: firstClueUnlocked, onClick: toggleFirstClue },
+    second: { unlocked: secondClueUnlocked, onClick: toggleSecondClue }
   }
 
   return (
@@ -56,27 +55,27 @@ export default function QuotesMode() {
         />
       </div>
 
-      <div className="hint-panel">
-        <div className="hint-button-row">
-          {HINT_BUTTONS.map(({ key, label }) => (
+      <div className="clue-panel">
+        <div className="clue-button-row">
+          {CLUE_BUTTONS.map(({ key, label }) => (
             <button
               key={key}
               type="button"
-              className="hint-button"
-              onClick={hintConfig[key].onClick}
-              disabled={!hintConfig[key].unlocked}
+              className="clue-button"
+              onClick={clueConfig[key].onClick}
+              disabled={!clueConfig[key].unlocked}
             >
               {label}
             </button>
           ))}
         </div>
 
-        <div className="hint-results">
-          {firstHintRevealed && (
-            <p className="hint-placeholder">{firstHintQuote || 'No extra quote available.'}</p>
+        <div className="clue-results">
+          {firstClueRevealed && (
+            <p className="clue-placeholder">{firstClueQuote || 'No game clue available.'}</p>
           )}
-          {secondHintRevealed && (
-            <p className="hint-placeholder">{secondHintQuote || 'No third quote available.'}</p>
+          {secondClueRevealed && (
+            <p className="clue-placeholder">{secondClueQuote || 'No location clue available.'}</p>
           )}
         </div>
       </div>
