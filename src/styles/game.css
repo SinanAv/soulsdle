@@ -314,6 +314,7 @@ table {
   border-collapse: separate;
   border-spacing: 7px;
   font-size: 15px;
+  font-family: var(--font-sans);
   perspective: 900px;
 }
 
@@ -338,7 +339,7 @@ td {
 
 th {
   height: 42px;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-sans);
   text-transform: uppercase;
   font-size: 0.68rem;
   font-weight: 800;
@@ -363,7 +364,7 @@ th {
   backface-visibility: hidden;
   overflow-wrap: anywhere;
   line-height: 1.18;
-  font-weight: 700;
+  font-family: var(--font-sans);
   text-shadow: 0 1px 7px rgba(0, 0, 0, 0.55);
 }
 
