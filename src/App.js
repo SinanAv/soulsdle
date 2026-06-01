@@ -62,7 +62,6 @@ function Home() {
           </Link>
         ))}
       </div>
-      <p className="home-note">New souls rise every day at midnight.</p>
     </div>
   )
 }

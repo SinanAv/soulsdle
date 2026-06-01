@@ -167,8 +167,9 @@
 }
 
 .mode-switcher-icon {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
+  padding: 5px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(213, 178, 104, 0.4);
@@ -181,6 +182,14 @@
   font-weight: 900;
   line-height: 1;
   box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.44);
+}
+
+.mode-switcher-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.46));
 }
 
 .mode-switcher-label {
@@ -220,8 +229,8 @@
 .mode-switcher-link.is-active .mode-switcher-icon {
   border-color: rgba(255, 247, 212, 0.7);
   background:
-    linear-gradient(180deg, #f0d187 0%, var(--ember-gold) 48%, #9b6429 100%);
-  color: #15110b;
+    radial-gradient(circle at 50% 22%, rgba(255, 247, 212, 0.22), transparent 54%),
+    linear-gradient(180deg, rgba(68, 53, 27, 0.92), rgba(8, 7, 5, 0.92));
 }
 
 .suggestion-list {
@@ -519,8 +528,9 @@ th {
   }
 
   .mode-switcher-icon {
-    width: 28px;
-    height: 28px;
+    width: 31px;
+    height: 31px;
+    padding: 4px;
     font-size: 0.86rem;
   }
 

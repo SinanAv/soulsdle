@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom'
 
 const MODES = [
-  { to: '/boss', icon: 'B', label: 'Boss' },
-  { to: '/character', icon: 'N', label: 'NPC' },
-  { to: '/quotes', icon: 'Q', label: 'Quotes' },
-  { to: '/trivia', icon: 'T', label: 'Trivia' },
-  { to: '/locations', icon: 'L', label: 'Location' }
+  { to: '/boss', icon: `${process.env.PUBLIC_URL}/BossIcon.png`, label: 'Boss' },
+  { to: '/character', icon: `${process.env.PUBLIC_URL}/NpcOfTheDayIcon.png`, label: 'NPC' },
+  { to: '/quotes', icon: `${process.env.PUBLIC_URL}/QuoteOfTheDay.png`, label: 'Quotes' },
+  { to: '/trivia', icon: `${process.env.PUBLIC_URL}/TriviaOfTheDay.png`, label: 'Trivia' },
+  { to: '/locations', icon: `${process.env.PUBLIC_URL}/LocationOfTheDay.png`, label: 'Location' }
 ]
 
 export default function ModeSwitcher() {
@@ -17,7 +17,9 @@ export default function ModeSwitcher() {
           to={to}
           className={({ isActive }) => `mode-switcher-link${isActive ? ' is-active' : ''}`}
         >
-          <span className="mode-switcher-icon" aria-hidden="true">{icon}</span>
+          <span className="mode-switcher-icon" aria-hidden="true">
+            <img src={icon} alt="" loading="eager" />
+          </span>
           <span className="mode-switcher-label">{label}</span>
         </NavLink>
       ))}
