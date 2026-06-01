@@ -7,22 +7,62 @@ import GuessInput from './components/game/GuessInput'
 import GameGrid from './components/game/GameGrid'
 import QuotesMode from './components/game/QuotesMode'
 import LocationMode from './components/game/LocationMode'
+import TriviaMode from './components/game/TriviaMode'
+import ModeSwitcher from './components/common/modeSwitcher'
 import useGameLogic from './hooks/useGameLogic'
 import useBossLogic from './hooks/useBossLogic'
 
 const HOME_MODES = [
-  { to: '/boss', label: 'Boss Of The Day' },
-  { to: '/character', label: 'NPC Of The Day' },
-  { to: '/quotes', label: 'Quotes' },
-  { to: '/locations', label: 'Location Splash' }
+  {
+    to: '/boss',
+    icon: `${process.env.PUBLIC_URL}/BossIcon.png`,
+    label: 'Boss Of The Day',
+    description: 'Guess the boss from attributes'
+  },
+  {
+    to: '/character',
+    icon: `${process.env.PUBLIC_URL}/NpcOfTheDayIcon.png`,
+    label: 'NPC Of The Day',
+    description: 'Identify today\'s Souls character'
+  },
+  {
+    to: '/quotes',
+    icon: `${process.env.PUBLIC_URL}/QuoteOfTheDay.png`,
+    label: 'Quotes',
+    description: 'Find the speaker from a line'
+  },
+  {
+    to: '/trivia',
+    icon: `${process.env.PUBLIC_URL}/TriviaOfTheDay.png`,
+    label: 'Trivia',
+    description: 'Answer today\'s lore question'
+  },
+  {
+    to: '/locations',
+    icon: `${process.env.PUBLIC_URL}/LocationOfTheDay.png`,
+    label: 'Location Splash',
+    description: 'Reveal and name the place'
+  }
 ]
 
 function Home() {
   return (
-    <div className="mode-select">
-      {HOME_MODES.map(({ to, label }) => (
-        <Link key={to} className="mode-button" to={to}>{label}</Link>
-      ))}
+    <div className="home-shell">
+      <p className="home-kicker">Daily Dark Souls Wordle & Trivia</p>
+      <div className="mode-select" aria-label="Choose a Soulsdle mode">
+        {HOME_MODES.map(({ to, icon, label, description }) => (
+          <Link key={to} className="mode-button" to={to}>
+            <span className="mode-icon" aria-hidden="true">
+              <img src={icon} alt="" loading="eager" />
+            </span>
+            <span className="mode-copy">
+              <span className="mode-label">{label}</span>
+              <span className="mode-description">{description}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+      <p className="home-note">New souls rise every day at midnight.</p>
     </div>
   )
 }
@@ -63,6 +103,7 @@ function CharacterMode() {
         <Link className="back-button" to="/">Back</Link>
         <h2>NPC Of The Day</h2>
       </div>
+      <ModeSwitcher />
 
       {loading && <p className="mode-status">Loading character of the day…</p>}
       {error && <p className="mode-status error">{error}</p>}
@@ -141,6 +182,7 @@ function BossMode() {
         <Link className="back-button" to="/">Back</Link>
         <h2>Boss of the Day</h2>
       </div>
+      <ModeSwitcher />
 
       {loading && <p className="mode-status">Loading boss of the day…</p>}
       {error && <p className="mode-status error">{error}</p>}
@@ -192,6 +234,7 @@ function App() {
         <Route path="/character" element={<CharacterMode />} />
         <Route path="/boss" element={<BossMode />} />
         <Route path="/quotes" element={<QuotesMode />} />
+        <Route path="/trivia" element={<TriviaMode />} />
         <Route path="/locations" element={<LocationMode />} />
         <Route path="*" element={<Home />} />
       </Routes>

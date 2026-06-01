@@ -127,12 +127,12 @@ export default function GuessInput({
         )}
 
         {!isDisabled && filteredSuggestions.length > 0 && (
-          <div className="suggestion-list">
+          <div className={`suggestion-list${showSuggestionImages ? '' : ' suggestion-list-text-only'}`}>
             {filteredSuggestions.map((name, index) => (
               <button
                 key={name}
                 type="button"
-                className={`suggestion-item${index === highlightIndex ? ' is-active' : ''}`}
+                className={`suggestion-item${showSuggestionImages ? '' : ' is-text-only'}${index === highlightIndex ? ' is-active' : ''}`}
                 onClick={() => submitGuess(name)}
                 disabled={isDisabled}
               >

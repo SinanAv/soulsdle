@@ -1,5 +1,5 @@
 import GuessInput from './GuessInput'
-import useQuoteLogic from '../../hooks/useQuoteLogic'
+import useTriviaLogic from '../../hooks/useTriviaLogic'
 import { Link } from 'react-router-dom'
 import getStoragePublicUrl from '../../utils/getStoragePublicUrl'
 import ModeSwitcher from '../common/modeSwitcher'
@@ -13,14 +13,16 @@ const getCharacterImageUrl = (name) => {
   return getStoragePublicUrl('imagesofcharacters', name)
 }
 
-export default function QuotesMode() {
+export default function TriviaMode() {
   const {
     guesses,
     addGuess,
     resetGuesses,
-    targetQuote,
+    targetTrivia,
     targetCharacter,
     allCharacters,
+    loading,
+    error,
     firstClueUnlocked,
     firstClueRevealed,
     firstClueQuote,
@@ -29,9 +31,9 @@ export default function QuotesMode() {
     secondClueRevealed,
     secondClueQuote,
     toggleSecondClue
-  } = useQuoteLogic()
+  } = useTriviaLogic()
 
-  const quoteText = targetQuote?.quote || 'Loading quote...'
+  const questionText = targetTrivia?.Question || targetTrivia?.question || 'Loading trivia...'
   const displayGuesses = [...guesses].reverse()
   const clueConfig = {
     first: { unlocked: firstClueUnlocked, onClick: toggleFirstClue },
@@ -39,19 +41,22 @@ export default function QuotesMode() {
   }
 
   return (
-    <div className="quotes-mode">
+    <div className="trivia-mode quotes-mode">
       <div className="mode-header">
         <Link className="back-button" to="/">Back</Link>
-        <h2>Quotes</h2>
+        <h2>Trivia</h2>
       </div>
       <ModeSwitcher />
 
-      <div className="quote-card">
-        <p className="quote-text">{quoteText}</p>
+      {error && <p className="mode-status error">{error}</p>}
+
+      <div className="quote-card trivia-card">
+        <p className="quote-text trivia-question">{loading ? 'Loading trivia...' : questionText}</p>
         <GuessInput
           onGuessSubmit={addGuess}
           onReset={resetGuesses}
           hideWhenDisabled={false}
+          isDisabled={loading || Boolean(error) || !targetCharacter}
           allCharacters={allCharacters}
           guesses={guesses}
         />

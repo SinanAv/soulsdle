@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import GuessInput from './GuessInput'
 import useLocationLogic from '../../hooks/useLocationLogic'
 import getStoragePublicUrl, { getStoragePublicUrlForExt } from '../../utils/getStoragePublicUrl'
+import ModeSwitcher from '../common/modeSwitcher'
 
 const LOCATION_BUCKET = 'locations'
 const REVEAL_COLS = 4
@@ -147,6 +148,7 @@ export default function LocationMode() {
         <Link className="back-button" to="/">Back</Link>
         <h2>Location Mode</h2>
       </div>
+      <ModeSwitcher />
 
       <div className="location-card">
         <h1 className="location-title">Guess the name of today&apos;s location</h1>

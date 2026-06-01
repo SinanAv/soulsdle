@@ -1,12 +1,17 @@
-﻿:root {
-  --flame-orange: #ff6b35;
-  --ember-gold: #f7931e;
-  --ash-gray: #2a2a2a;
-  --deep-black: #0f0f0f;
-  --bone-white: #e8dcc4;
-  --blood-red: #8b0000;
-  --soul-blue: #4a90e2;
-  --fog-gray: rgba(150, 150, 150, 0.1);
+:root {
+  --flame-orange: #b86f28;
+  --ember-gold: #d5b268;
+  --ash-gray: #1b1915;
+  --deep-black: #090806;
+  --bone-white: #efe2bf;
+  --muted-bone: #b8aa89;
+  --blood-red: #842a24;
+  --soul-blue: #517c94;
+  --panel: rgba(16, 14, 11, 0.88);
+  --panel-light: rgba(39, 34, 27, 0.88);
+  --line: rgba(213, 178, 104, 0.36);
+  --line-strong: rgba(213, 178, 104, 0.72);
+  --fog-gray: rgba(239, 226, 191, 0.08);
 }
 
 * {
@@ -16,9 +21,10 @@
 }
 
 body {
-  font-family: 'Crimson Pro', serif;
+  font-family: Georgia, 'Times New Roman', serif;
   background:
-    linear-gradient(180deg, rgba(15, 15, 15, 0.1) 0%, rgba(26, 26, 26, 0.55) 50%, rgba(15, 15, 15, 0.6) 100%),
+    linear-gradient(180deg, rgba(8, 7, 5, 0.18) 0%, rgba(8, 7, 5, 0.72) 52%, rgba(8, 7, 5, 0.92) 100%),
+    radial-gradient(circle at 50% 12%, rgba(213, 178, 104, 0.15), transparent 34%),
     url('/Soulsdle_Background.jpg') center/cover no-repeat fixed;
   color: var(--bone-white);
   min-height: 100vh;
@@ -29,13 +35,10 @@ body {
 body::before {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background:
-    radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.03) 0%, transparent 50%);
+    linear-gradient(90deg, rgba(0, 0, 0, 0.64), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.64)),
+    radial-gradient(circle at 50% 0%, rgba(213, 178, 104, 0.08), transparent 48%);
   pointer-events: none;
   z-index: 0;
 }
@@ -43,38 +46,35 @@ body::before {
 body::after {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-image:
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.12) 3px, rgba(0, 0, 0, 0.12) 4px);
   pointer-events: none;
   z-index: 1;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .App {
   text-align: center;
-  max-width: 1200px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2.35rem 1rem 3rem;
   position: relative;
   z-index: 2;
 }
 
 h1 {
-  font-family: 'Cinzel', serif;
-  font-size: 3.4rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 4.15rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   text-transform: uppercase;
-  background: linear-gradient(180deg, var(--bone-white) 0%, var(--ember-gold) 50%, var(--flame-orange) 100%);
+  background: linear-gradient(180deg, #fff7d4 0%, var(--ember-gold) 56%, #9b6429 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  text-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
-  margin-bottom: 1.2rem;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.92));
+  margin-bottom: 0.65rem;
 }
 
 .mode-header {
@@ -82,26 +82,45 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin: 1.5rem 0 1rem;
+  min-height: 48px;
+  max-width: 760px;
+  margin: 0.25rem auto 1rem;
+  position: relative;
 }
 
 .mode-header button,
 .mode-header .back-button {
   height: 44px;
-  padding: 0 16px;
-  font-size: 0.9rem;
-  font-family: 'Cinzel', serif;
+  padding: 0 18px;
+  font-size: 0.76rem;
+  font-family: Georgia, 'Times New Roman', serif;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  background: rgba(42, 42, 42, 0.8);
+  letter-spacing: 0;
+  background: var(--panel);
   color: var(--bone-white);
-  border: 1px solid rgba(255, 107, 53, 0.4);
+  border: 1px solid var(--line);
   border-radius: 4px;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 10px 24px rgba(0, 0, 0, 0.34);
+}
+
+.mode-header h2 {
+  min-width: 0;
+  color: var(--bone-white);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.mode-header .back-button:hover {
+  border-color: var(--line-strong);
+  color: #fff7d4;
 }
 
 ::-webkit-scrollbar {
@@ -113,16 +132,31 @@ h1 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--flame-orange);
+  background: var(--ember-gold);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ember-gold);
+  background: #f0cf82;
 }
 
 @media (max-width: 768px) {
+  .App {
+    padding: 1.35rem 0.8rem 2rem;
+  }
+
   h1 {
-    font-size: 2.6rem;
+    font-size: 2.75rem;
+  }
+
+  .mode-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .mode-header h2 {
+    width: 100%;
+    order: -1;
+    font-size: 1.05rem;
   }
 }

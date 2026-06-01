@@ -45,7 +45,6 @@ export default function GameGrid({ guesses, targetCharacter }) {
                     src={getCharacterImageUrl(value)}
                     alt={value}
                     loading="eager"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 )
               }
@@ -64,7 +63,9 @@ export default function GameGrid({ guesses, targetCharacter }) {
                     animationDelay: `${propertyIndex * 320}ms`
                   }}
                 >
-                  <div className="guess-cell-inner">{displayValue}</div>
+                  <div className={`guess-cell-inner${property === 'name' ? ' is-image' : ''}`}>
+                    {displayValue}
+                  </div>
                 </td>
               )
             })}
