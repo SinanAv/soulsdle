@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/soulsdle/static/css/main.71f2b9b4.css",
+    "main.css": "/soulsdle/static/css/main.1a67711f.css",
     "main.js": "/soulsdle/static/js/main.6a80df71.js",
     "static/media/Soulsdle_Background.jpg": "/soulsdle/static/media/Soulsdle_Background.3072ff99a92ec3a0b96f.jpg",
     "index.html": "/soulsdle/index.html",
-    "main.71f2b9b4.css.map": "/soulsdle/static/css/main.71f2b9b4.css.map",
+    "main.1a67711f.css.map": "/soulsdle/static/css/main.1a67711f.css.map",
     "main.6a80df71.js.map": "/soulsdle/static/js/main.6a80df71.js.map"
   },
   "entrypoints": [
-    "static/css/main.71f2b9b4.css",
+    "static/css/main.1a67711f.css",
     "static/js/main.6a80df71.js"
   ]
 }
